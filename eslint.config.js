@@ -4,14 +4,14 @@ import globals from 'globals';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
-import aliasResolver from 'eslint-import-resolver-alias';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettier from 'eslint-config-prettier';
 
 export default [
-  { ignores: ['dist/**', 'node_modules/**'] },
+  { ignores: ['dist/**', 'node_modules/**', '**/*.backup.*', '**/*.backup'] },
+  // Base for JS/TS/React
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     languageOptions: {
@@ -37,6 +37,9 @@ export default [
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
       },
+      react: {
+        version: 'detect',
+      },
     },
     plugins: {
       react: reactPlugin,
@@ -56,18 +59,18 @@ export default [
       // Reduce noise initially
       'no-empty': 'warn',
       'no-undef': 'warn',
+      'no-unused-vars': 'warn',
       // Relax a11y rules for now; can be re-enabled gradually
       'jsx-a11y/label-has-associated-control': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
     },
   },
-  // TS-specific rules only for TS/TSX files
+  // TS-specific tweaks (only adjust rules, no invalid spreads)
   {
     files: ['**/*.{ts,tsx}'],
-    plugins: { '@typescript-eslint': tseslint },
     rules: {
-      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': 'warn',
     },
   },
   // Prettier compatibility (turn off formatting rules)

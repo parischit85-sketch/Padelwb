@@ -16,9 +16,28 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
+// Debug leggero (solo su richiesta): mostra progetto/authDomain in console con ?authdebug=1
+try {
+  if (typeof window !== 'undefined') {
+    const usp = new URLSearchParams(window.location.search || '');
+    if (usp.has('authdebug')) {
+      // Non stampare apiKey; mostra solo info utili per verificare il progetto
+       
+      console.info('[AuthDebug]', {
+        origin: window.location.origin,
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain,
+        env: import.meta.env.MODE,
+      });
+    }
+  }
+} catch {
+  /* no-op */
+}
+
 // Verifica che la configurazione sia presente
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'appId'];
-const missingConfig = requiredConfig.filter(key => !firebaseConfig[key]);
+const missingConfig = requiredConfig.filter((key) => !firebaseConfig[key]);
 
 if (missingConfig.length > 0) {
   console.error('Missing Firebase configuration:', missingConfig);
@@ -40,7 +59,7 @@ if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true'
   try {
     connectAuthEmulator(auth, 'http://127.0.0.1:9099');
     connectFirestoreEmulator(db, '127.0.0.1', 8080);
-  } catch (error) {
+  } catch {
     console.warn('Firebase emulators already connected or not available');
   }
 }

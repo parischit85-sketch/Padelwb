@@ -1,1 +1,21 @@
-node_modules
+node_modules/
+dist/
+.out/
+.next/
+.turbo/
+coverage/
+.cache/
+
+# Editors/OS
+.vscode/
+.DS_Store
+*.log
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Local backups/archives
+ml-backup-*
+*.zip

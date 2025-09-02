@@ -11,6 +11,9 @@ import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
   signInWithEmailLink,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -23,22 +26,22 @@ export function onAuth(callback) {
 // ---- Login con provider ----
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
-  
+
   // Aggiungi scopes per ottenere informazioni aggiuntive
   provider.addScope('email');
   provider.addScope('profile');
-  
+
   // Forza la selezione dell'account
   provider.setCustomParameters({
-    prompt: 'select_account'
+    prompt: 'select_account',
   });
-  
+
   const result = await signInWithPopup(auth, provider);
-  
+
   // Dopo il login, crea/aggiorna automaticamente il profilo base
   if (result.user) {
     const existingProfile = await getUserProfile(result.user.uid);
-    
+
     // Se il profilo non esiste o mancano dati, crealo/aggiornalo con i dati di Google
     if (!existingProfile.email || !existingProfile.firstName) {
       const names = (result.user.displayName || '').split(' ');
@@ -51,27 +54,27 @@ export async function loginWithGoogle() {
         provider: 'google',
         ...existingProfile, // mantieni i dati esistenti
       };
-      
+
       await saveUserProfile(result.user.uid, profileData);
     }
   }
-  
+
   return result;
 }
 
 export async function loginWithFacebook() {
   const provider = new FacebookAuthProvider();
-  
+
   // Aggiungi permessi per ottenere email e profilo
   provider.addScope('email');
   provider.addScope('public_profile');
-  
+
   const result = await signInWithPopup(auth, provider);
-  
+
   // Dopo il login, crea/aggiorna automaticamente il profilo base
   if (result.user) {
     const existingProfile = await getUserProfile(result.user.uid);
-    
+
     // Se il profilo non esiste o mancano dati, crealo/aggiornalo con i dati di Facebook
     if (!existingProfile.email || !existingProfile.firstName) {
       const names = (result.user.displayName || '').split(' ');
@@ -84,11 +87,11 @@ export async function loginWithFacebook() {
         provider: 'facebook',
         ...existingProfile, // mantieni i dati esistenti
       };
-      
+
       await saveUserProfile(result.user.uid, profileData);
     }
   }
-  
+
   return result;
 }
 
@@ -99,8 +102,52 @@ const ACTION_CODE_SETTINGS = {
 };
 
 export async function sendMagicLink(email) {
-  await sendSignInLinkToEmail(auth, email, ACTION_CODE_SETTINGS);
-  try { localStorage.setItem('ml-magic-email', email); } catch {}
+  try {
+    await sendSignInLinkToEmail(auth, email, ACTION_CODE_SETTINGS);
+    try {
+      localStorage.setItem('ml-magic-email', email);
+    } catch {}
+  } catch (e) {
+    // Fornisce un messaggio più chiaro quando il metodo non è abilitato in Firebase Console
+    if (e && e.code === 'auth/operation-not-allowed') {
+      throw new Error(
+        'Accesso via email non abilitato. Abilita "Email link (passwordless)" in Firebase → Authentication → Sign-in method → Email/Password,' +
+          ' e aggiungi il dominio (es. localhost:5173) in Authentication → Settings → Authorized domains.'
+      );
+    }
+    throw e;
+  }
+}
+
+// ---- Email & Password ----
+export async function registerWithEmailPassword(email, password) {
+  if (!email || !password) throw new Error('Email e password sono obbligatorie');
+  const res = await createUserWithEmailAndPassword(auth, email, password);
+  // crea profilo base se non esiste
+  if (res.user) {
+    const existingProfile = await getUserProfile(res.user.uid);
+    if (!existingProfile.email) {
+      await saveUserProfile(res.user.uid, {
+        email: res.user.email,
+        firstName: '',
+        lastName: '',
+        phone: '',
+        provider: 'password',
+        ...existingProfile,
+      });
+    }
+  }
+  return res;
+}
+
+export async function loginWithEmailPassword(email, password) {
+  if (!email || !password) throw new Error('Email e password sono obbligatorie');
+  return signInWithEmailAndPassword(auth, email, password);
+}
+
+export async function sendResetPassword(email) {
+  if (!email) throw new Error('Email obbligatoria');
+  return sendPasswordResetEmail(auth, email);
 }
 
 // Da chiamare all’avvio della pagina per completare l’accesso via link
@@ -110,19 +157,23 @@ export async function completeMagicLinkIfPresent() {
     if (!isSignInWithEmailLink(auth, href)) return null;
 
     let email = null;
-    try { email = localStorage.getItem('ml-magic-email'); } catch {}
+    try {
+      email = localStorage.getItem('ml-magic-email');
+    } catch {}
     if (!email) {
       email = window.prompt('Per completare l’accesso, inserisci la tua email:') || '';
     }
     const res = await signInWithEmailLink(auth, email, href);
-    try { localStorage.removeItem('ml-magic-email'); } catch {}
+    try {
+      localStorage.removeItem('ml-magic-email');
+    } catch {}
     // pulizia URL
     window.history.replaceState({}, document.title, window.location.pathname);
-    
+
     // Dopo il login via magic link, crea il profilo base se non esiste
     if (res.user) {
       const existingProfile = await getUserProfile(res.user.uid);
-      
+
       if (!existingProfile.email) {
         const profileData = {
           email: res.user.email,
@@ -132,11 +183,11 @@ export async function completeMagicLinkIfPresent() {
           provider: 'email',
           ...existingProfile, // mantieni i dati esistenti
         };
-        
+
         await saveUserProfile(res.user.uid, profileData);
       }
     }
-    
+
     return res;
   } catch (e) {
     console.warn('completeMagicLinkIfPresent error:', e);
