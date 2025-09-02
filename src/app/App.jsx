@@ -3,7 +3,11 @@
 // =============================================
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { loadLeague, saveLeague, subscribeLeague } from '@services/cloud.js';
-import { completeMagicLinkIfPresent, onAuth } from '@services/auth.jsx';
+import {
+  completeMagicLinkIfPresent,
+  onAuth,
+  completeProviderRedirectIfNeeded,
+} from '@services/auth.jsx';
 
 import { themeTokens, LOGO_URL } from '@lib/theme.js';
 import { LS_KEY } from '@lib/ids.js';
@@ -93,6 +97,8 @@ export default function App() {
 
   useEffect(() => {
     completeMagicLinkIfPresent().catch(() => {});
+    // Completa eventuale magic link o redirect provider (Google/Facebook)
+    completeProviderRedirectIfNeeded().catch(() => {});
   }, []);
 
   // clientId + mute snapshot

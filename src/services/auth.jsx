@@ -7,6 +7,8 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
@@ -36,7 +38,25 @@ export async function loginWithGoogle() {
     prompt: 'select_account',
   });
 
-  const result = await signInWithPopup(auth, provider);
+  // Prova popup, fallback a redirect se l'ambiente blocca il referer/popup
+  let result = null;
+  try {
+    result = await signInWithPopup(auth, provider);
+  } catch (e) {
+    const msg = String(e?.message || '').toLowerCase();
+    const code = String(e?.code || '').toLowerCase();
+    const shouldRedirect =
+      code.includes('unauthorized-domain') ||
+      code.includes('operation-not-supported') ||
+      code.includes('popup-blocked') ||
+      msg.includes('requests-from-referer');
+    if (shouldRedirect) {
+      await signInWithRedirect(auth, provider);
+      // Il flusso continuerà al ritorno dalla redirect
+      return null;
+    }
+    throw e;
+  }
 
   // Dopo il login, crea/aggiorna automaticamente il profilo base
   if (result.user) {
@@ -60,6 +80,17 @@ export async function loginWithGoogle() {
   }
 
   return result;
+}
+
+// Da chiamare opzionalmente all'avvio per completare eventuali redirect OAuth
+export async function completeProviderRedirectIfNeeded() {
+  try {
+    const res = await getRedirectResult(auth);
+    return res || null;
+  } catch (e) {
+    // non fatale
+    return null;
+  }
 }
 
 export async function loginWithFacebook() {
