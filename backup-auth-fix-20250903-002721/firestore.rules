@@ -1,0 +1,51 @@
+// Firebase Firestore Security Rules
+// Versione permissiva per sviluppo - da restringere in produzione
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regole temporanee permissive per testing (ATTENZIONE: restringere in produzione)
+    // Richiede autenticazione per qualsiasi operazione
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regole specifiche più sicure (da usare quando tutto funziona)
+    /*
+    // Regola per le leghe - solo utenti autenticati possono leggere/scrivere
+    match /leagues/{leagueId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regola per i profili utente - solo il proprietario può accedere
+    match /profiles/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Regole per le prenotazioni
+    match /bookings/{bookingId} {
+      // Tutti gli utenti autenticati possono leggere (per controllo disponibilità)
+      allow read: if request.auth != null;
+      
+      // Solo l'autore può creare le proprie prenotazioni
+      allow create: if request.auth != null && 
+                   request.auth.uid == request.resource.data.createdBy;
+      
+      // Solo l'autore può modificare ed eliminare le proprie prenotazioni
+      allow update, delete: if request.auth != null && 
+                           request.auth.uid == resource.data.createdBy;
+    }
+    
+    // Regola per dati condivisi
+    match /shared/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regola per diagnostica - solo utenti autenticati
+    match /diagnostics/{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    */
+  }
+}
