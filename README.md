@@ -8,6 +8,25 @@ Sistema completo per la gestione di leghe sportive con Firebase backend.
 
 La migrazione da `marsica-padel` a `m-padelweb` è stata completata con successo.
 
+### ⚠️ Setup Firebase Richiesto
+
+**IMPORTANTE**: Per il corretto funzionamento, devi abilitare manualmente questi servizi nella [Console Firebase](https://console.firebase.google.com/project/m-padelweb):
+
+1. **Authentication** (Obbligatorio)
+   - Vai su `Authentication` → `Sign-in method`
+   - Abilita `Google` come provider
+   - Abilita `Email/Password` 
+   - Opzionale: Abilita `Email link (passwordless)`
+   - Aggiungi domini autorizzati in `Settings` → `Authorized domains`
+
+2. **Firestore Database** (Già configurato)
+   - ✅ Database creato
+   - ✅ Regole di sicurezza deployate
+   - ✅ Indici configurati
+
+3. **Hosting Domini** (Per produzione)
+   - Aggiungi il dominio Netlify in `Authentication` → `Settings` → `Authorized domains`
+
 ### Configurazione Environment Variables
 
 File `.env.local`:

@@ -25,7 +25,14 @@ export async function loadLeague(leagueId) {
     const snap = await getDoc(ref);
     return snap.exists() ? snap.data() : null;
   } catch (e) {
-    console.warn('loadLeague error:', e);
+    // Gestisci errori specifici di Firebase
+    if (e?.code === 'permission-denied') {
+      console.warn('Firebase: Permessi insufficienti per leggere la lega. Verifica autenticazione e regole Firestore.');
+    } else if (e?.code === 'unavailable') {
+      console.warn('Firebase: Servizio non disponibile.');
+    } else {
+      console.warn('loadLeague error:', e);
+    }
     return null;
   }
 }
@@ -45,7 +52,15 @@ export function subscribeLeague(leagueId, callback) {
   return onSnapshot(
     ref,
     (snap) => callback(snap.exists() ? snap.data() : null),
-    (err) => console.warn('subscribeLeague error:', err)
+    (err) => {
+      if (err?.code === 'permission-denied') {
+        console.warn('Firebase: Permessi insufficienti per sottoscrivere la lega. Fallback a modalità offline.');
+      } else {
+        console.warn('subscribeLeague error:', err);
+      }
+      // In caso di errore, passa null per fallback graceful
+      callback(null);
+    }
   );
 }
 

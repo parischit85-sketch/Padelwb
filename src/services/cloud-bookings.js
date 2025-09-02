@@ -41,8 +41,14 @@ export async function loadPublicBookings() {
       ...doc.data()
     }));
   } catch (error) {
-  // Propaga l'errore per consentire il fallback a localStorage a livelli superiori
-  if (error?.code !== 'permission-denied' && error?.code !== 'failed-precondition') {
+    // Gestisci errori comuni di configurazione Firebase
+    if (error?.code === 'permission-denied') {
+      console.warn('Firebase: Permessi insufficienti per leggere le prenotazioni. Verifica le regole Firestore e l\'autenticazione.');
+    } else if (error?.code === 'failed-precondition') {
+      console.warn('Firebase: Indici mancanti o configurazione incompleta.');
+    } else if (error?.code === 'unavailable') {
+      console.warn('Firebase: Servizio non disponibile. Verifica la connessione.');
+    } else {
       console.warn('Errore caricamento prenotazioni pubbliche (cloud):', error);
     }
     throw error;

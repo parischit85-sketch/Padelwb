@@ -20,9 +20,23 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
-// Listener auth
+// Listener auth con gestione errori
 export function onAuth(callback) {
-  return onAuthStateChanged(auth, callback);
+  return onAuthStateChanged(auth, 
+    (user) => {
+      try {
+        callback(user);
+      } catch (error) {
+        console.error('onAuth callback error:', error);
+        callback(null); // fallback sicuro
+      }
+    },
+    (error) => {
+      console.error('Firebase Auth error:', error);
+      // In caso di errori di configurazione, passa null come utente
+      callback(null);
+    }
+  );
 }
 
 // ---- Login con provider ----
