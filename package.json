@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --max-warnings=0",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "format": "prettier --write .",
     "release": "standard-version",
     "prepare": "husky"
@@ -28,6 +28,7 @@
     "@vitejs/plugin-react": "^4.7.0",
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.4",

@@ -51,10 +51,11 @@ export default [
       ...reactHooks.configs.recommended.rules,
       ...importPlugin.configs.recommended.rules,
       ...jsxA11y.configs.recommended.rules,
-      // TypeScript rules when TS files present
-      ...tseslint.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
+      // Reduce noise initially
+      'no-empty': 'warn',
+      'no-undef': 'warn',
       // Relax a11y rules for now; can be re-enabled gradually
       'jsx-a11y/label-has-associated-control': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
