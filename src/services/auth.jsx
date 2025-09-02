@@ -52,10 +52,20 @@ export async function loginWithGoogle() {
     prompt: 'select_account',
   });
 
-  // Prova popup, fallback a redirect se l'ambiente blocca il referer/popup
+  // Su localhost, usa sempre redirect per evitare problemi CORS
+  const isLocalhost = window.location.hostname === 'localhost' || 
+                     window.location.hostname === '127.0.0.1';
+
   let result = null;
   try {
-    result = await signInWithPopup(auth, provider);
+    if (isLocalhost) {
+      // Su localhost, usa redirect direttamente
+      await signInWithRedirect(auth, provider);
+      return null; // Il flusso continuerà al ritorno dalla redirect
+    } else {
+      // Su domini configurati, prova popup
+      result = await signInWithPopup(auth, provider);
+    }
   } catch (e) {
     const msg = String(e?.message || '').toLowerCase();
     const code = String(e?.code || '').toLowerCase();
@@ -63,46 +73,61 @@ export async function loginWithGoogle() {
       code.includes('unauthorized-domain') ||
       code.includes('operation-not-supported') ||
       code.includes('popup-blocked') ||
-      msg.includes('requests-from-referer');
+      msg.includes('requests-from-referer') ||
+      msg.includes('cross-origin');
+    
     if (shouldRedirect) {
+      console.log('Fallback a redirect per problemi popup/CORS');
       await signInWithRedirect(auth, provider);
-      // Il flusso continuerà al ritorno dalla redirect
-      return null;
+      return null; // Il flusso continuerà al ritorno dalla redirect
     }
     throw e;
   }
 
   // Dopo il login, crea/aggiorna automaticamente il profilo base
-  if (result.user) {
-    const existingProfile = await getUserProfile(result.user.uid);
+  if (result && result.user) {
+    await createOrUpdateUserProfile(result.user);
+  }
 
-    // Se il profilo non esiste o mancano dati, crealo/aggiornalo con i dati di Google
+  return result;
+}
+
+// Helper per creare/aggiornare profilo utente
+async function createOrUpdateUserProfile(user) {
+  try {
+    const existingProfile = await getUserProfile(user.uid);
+
+    // Se il profilo non esiste o mancano dati, crealo/aggiornalo
     if (!existingProfile.email || !existingProfile.firstName) {
-      const names = (result.user.displayName || '').split(' ');
+      const names = (user.displayName || '').split(' ');
       const profileData = {
-        email: result.user.email,
+        email: user.email,
         firstName: existingProfile.firstName || names[0] || '',
         lastName: existingProfile.lastName || names.slice(1).join(' ') || '',
         phone: existingProfile.phone || '',
-        avatar: result.user.photoURL || '',
+        avatar: user.photoURL || '',
         provider: 'google',
         ...existingProfile, // mantieni i dati esistenti
       };
 
-      await saveUserProfile(result.user.uid, profileData);
+      await saveUserProfile(user.uid, profileData);
     }
+  } catch (error) {
+    console.warn('Errore creazione/aggiornamento profilo:', error);
+    // Non bloccare il login per errori di profilo
   }
-
-  return result;
 }
 
 // Da chiamare opzionalmente all'avvio per completare eventuali redirect OAuth
 export async function completeProviderRedirectIfNeeded() {
   try {
     const res = await getRedirectResult(auth);
+    if (res && res.user) {
+      await createOrUpdateUserProfile(res.user);
+    }
     return res || null;
   } catch (e) {
-    // non fatale
+    console.warn('Errore completamento redirect:', e);
     return null;
   }
 }
@@ -117,24 +142,8 @@ export async function loginWithFacebook() {
   const result = await signInWithPopup(auth, provider);
 
   // Dopo il login, crea/aggiorna automaticamente il profilo base
-  if (result.user) {
-    const existingProfile = await getUserProfile(result.user.uid);
-
-    // Se il profilo non esiste o mancano dati, crealo/aggiornalo con i dati di Facebook
-    if (!existingProfile.email || !existingProfile.firstName) {
-      const names = (result.user.displayName || '').split(' ');
-      const profileData = {
-        email: result.user.email,
-        firstName: existingProfile.firstName || names[0] || '',
-        lastName: existingProfile.lastName || names.slice(1).join(' ') || '',
-        phone: existingProfile.phone || '',
-        avatar: result.user.photoURL || '',
-        provider: 'facebook',
-        ...existingProfile, // mantieni i dati esistenti
-      };
-
-      await saveUserProfile(result.user.uid, profileData);
-    }
+  if (result && result.user) {
+    await createOrUpdateUserProfile(result.user);
   }
 
   return result;
