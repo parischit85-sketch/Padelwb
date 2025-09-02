@@ -11,6 +11,7 @@ import { computePrice, getRateInfo } from '@lib/pricing.js';
 export default function PrenotazioneCampi({ state, setState, players, playersById, T }) {
   const cfg = state.bookingConfig;
   const [day, setDay] = useState(() => floorToSlot(new Date(), cfg.slotMinutes));
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const courts = Array.isArray(state?.courts) ? state.courts : [];
   const bookings = Array.isArray(state?.bookings) ? state.bookings : [];
 
@@ -406,25 +407,73 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
 
   return (
     <Section title="Prenotazione Campi" T={T}>
-      {/* Header moderno con gradient, icone e navigazione */}
-
-      <div className={`flex flex-col sm:flex-row sm:items-end gap-4 mb-6 ${T.cardBg} ${T.border} p-4`}>
-        <div className={`flex items-center gap-2 rounded-xl px-4 py-2 shadow-lg ${T.cardBg}`}>
-          <button type="button" className={`${T.btnGhostSm} text-lg font-bold`} onClick={() => goOffset(-1)} title="Giorno precedente">←</button>
-          <button type="button" className={`${T.btnGhostSm} text-sm font-semibold px-3 py-1 rounded-lg`} onClick={goToday}>Oggi</button>
-          <button type="button" className={`${T.btnGhostSm} text-lg font-bold`} onClick={() => goOffset(1)} title="Giorno successivo">→</button>
+      {/* Header moderno con navigazione integrata */}
+      <div className={`flex flex-col sm:flex-row sm:items-center gap-4 mb-6 ${T.cardBg} ${T.border} p-4 rounded-xl`}>
+        <div className="flex items-center gap-3">
+          <button 
+            type="button" 
+            className={`${T.btnGhostSm} text-xl font-bold hover:scale-110 transition-transform`} 
+            onClick={() => goOffset(-1)} 
+            title="Giorno precedente"
+          >
+            ←
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => setShowDatePicker(!showDatePicker)}
+            className={`text-2xl font-bold cursor-pointer hover:scale-105 transition-transform bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-lime-400`}
+            title="Clicca per aprire calendario"
+          >
+            {dayLabel}
+          </button>
+          
+          <button 
+            type="button" 
+            className={`${T.btnGhostSm} text-xl font-bold hover:scale-110 transition-transform`} 
+            onClick={() => goOffset(1)} 
+            title="Giorno successivo"
+          >
+            →
+          </button>
         </div>
-        <div className="flex flex-col gap-1">
-          <label className={`text-xs font-medium ${T.subtext}`}>Data</label>
-          <input type="date" value={`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`} onChange={(e) => setDayFromInput(e.target.value)} className={T.input} />
-        </div>
-        <div className="grow" />
-        <div className="flex flex-col items-end">
-          <span className={`text-xs font-medium ${T.subtext}`}>Fasce: <span className="font-bold text-blue-600 dark:text-emerald-400">{cfg.slotMinutes}′</span> • {cfg.dayStartHour}:00–{cfg.dayEndHour}:00</span>
+        
+        <div className="flex items-center gap-2">
+          <button 
+            type="button" 
+            className={`${T.btnGhostSm} text-sm font-semibold px-3 py-1 rounded-lg`} 
+            onClick={goToday}
+          >
+            Oggi
+          </button>
         </div>
       </div>
 
-      <div className={`text-2xl font-bold mb-6 text-center bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent drop-shadow-lg dark:from-emerald-400 dark:to-lime-400`}>{dayLabel}</div>
+      {/* Calendario popup */}
+      {showDatePicker && (
+        <div className={`mb-4 p-4 ${T.cardBg} ${T.border} rounded-xl shadow-lg`}>
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-sm font-medium ${T.subtext}`}>Seleziona data</span>
+            <button 
+              type="button" 
+              onClick={() => setShowDatePicker(false)}
+              className={`${T.btnGhostSm} text-sm`}
+            >
+              ✕
+            </button>
+          </div>
+          <input 
+            type="date" 
+            value={`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`} 
+            onChange={(e) => {
+              setDayFromInput(e.target.value);
+              setShowDatePicker(false);
+            }} 
+            className={T.input} 
+            autoFocus
+          />
+        </div>
+      )}
 
       {/* Griglia campi */}
       <div className="overflow-x-auto pb-4">
