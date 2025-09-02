@@ -8,6 +8,121 @@ import { euro, euro2 } from '@lib/format.js';
 import { sameDay, floorToSlot, addMinutes, overlaps } from '@lib/date.js';
 import { computePrice, getRateInfo } from '@lib/pricing.js';
 
+// Componente calendario personalizzato
+function CalendarGrid({ currentDay, onSelectDay, T }) {
+  const [calendarMonth, setCalendarMonth] = useState(new Date(currentDay.getFullYear(), currentDay.getMonth(), 1));
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  
+  // Primo giorno del mese e ultimo giorno
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  // Giorni da mostrare (inclusi quelli del mese precedente/successivo per riempire la griglia)
+  const startDate = new Date(firstDay);
+  startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Lunedì della prima settimana
+  
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 41); // 6 settimane complete
+  
+  const days = [];
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    days.push(new Date(d));
+  }
+  
+  const monthNames = [
+    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
+    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'
+  ];
+  
+  const weekDays = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
+  
+  const goToPrevMonth = () => {
+    setCalendarMonth(new Date(year, month - 1, 1));
+  };
+  
+  const goToNextMonth = () => {
+    setCalendarMonth(new Date(year, month + 1, 1));
+  };
+  
+  const isToday = (day) => day.getTime() === today.getTime();
+  const isSelected = (day) => day.getTime() === currentDay.getTime();
+  const isCurrentMonth = (day) => day.getMonth() === month;
+  const isPast = (day) => day < today;
+  
+  return (
+    <div className="w-full">
+      {/* Header del calendario */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          type="button"
+          onClick={goToPrevMonth}
+          className={`w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-xl font-bold transition-colors`}
+        >
+          ←
+        </button>
+        <h4 className={`text-xl font-bold ${T.text}`}>
+          {monthNames[month]} {year}
+        </h4>
+        <button
+          type="button"
+          onClick={goToNextMonth}
+          className={`w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-xl font-bold transition-colors`}
+        >
+          →
+        </button>
+      </div>
+      
+      {/* Giorni della settimana */}
+      <div className="grid grid-cols-7 gap-1 mb-2">
+        {weekDays.map(day => (
+          <div key={day} className={`text-center text-sm font-semibold ${T.subtext} py-2`}>
+            {day}
+          </div>
+        ))}
+      </div>
+      
+      {/* Griglia giorni */}
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, index) => {
+          const dayNum = day.getDate();
+          const isCurrentMonthDay = isCurrentMonth(day);
+          const isTodayDay = isToday(day);
+          const isSelectedDay = isSelected(day);
+          const isPastDay = isPast(day);
+          
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => onSelectDay(day)}
+              disabled={isPastDay}
+              className={`
+                h-12 w-full rounded-lg text-sm font-medium transition-all duration-200
+                ${isSelectedDay 
+                  ? 'bg-blue-500 text-white shadow-lg dark:bg-emerald-500' 
+                  : isTodayDay 
+                    ? 'bg-blue-100 text-blue-700 border-2 border-blue-300 dark:bg-emerald-100 dark:text-emerald-700 dark:border-emerald-300'
+                    : isCurrentMonthDay
+                      ? 'hover:bg-gray-200 dark:hover:bg-gray-700 ' + T.text
+                      : 'text-gray-400 dark:text-gray-600'
+                }
+                ${isPastDay ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}
+              `}
+            >
+              {dayNum}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function PrenotazioneCampi({ state, setState, players, playersById, T }) {
   const cfg = state.bookingConfig;
   const [day, setDay] = useState(() => floorToSlot(new Date(), cfg.slotMinutes));
@@ -408,11 +523,12 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
   return (
     <Section title="Prenotazione Campi" T={T}>
       {/* Header moderno con navigazione integrata */}
-      <div className={`flex flex-col sm:flex-row sm:items-center gap-4 mb-6 ${T.cardBg} ${T.border} p-4 rounded-xl`}>
-        <div className="flex items-center gap-3">
+      <div className={`flex flex-col items-center gap-6 mb-6 ${T.cardBg} ${T.border} p-6 rounded-xl shadow-lg`}>
+        {/* Navigazione date centrata con frecce grandi */}
+        <div className="flex items-center justify-center gap-6">
           <button 
             type="button" 
-            className={`${T.btnGhostSm} text-xl font-bold hover:scale-110 transition-transform`} 
+            className={`w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-2xl font-bold shadow-lg hover:scale-110 transition-all duration-200 flex items-center justify-center`} 
             onClick={() => goOffset(-1)} 
             title="Giorno precedente"
           >
@@ -421,8 +537,8 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
           
           <button
             type="button"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            className={`text-2xl font-bold cursor-pointer hover:scale-105 transition-transform bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-lime-400`}
+            onClick={() => setShowDatePicker(true)}
+            className={`text-3xl font-bold cursor-pointer hover:scale-105 transition-transform bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent dark:from-emerald-400 dark:to-lime-400 px-4 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800`}
             title="Clicca per aprire calendario"
           >
             {dayLabel}
@@ -430,48 +546,77 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
           
           <button 
             type="button" 
-            className={`${T.btnGhostSm} text-xl font-bold hover:scale-110 transition-transform`} 
+            className={`w-12 h-12 rounded-full bg-blue-500 hover:bg-blue-600 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-2xl font-bold shadow-lg hover:scale-110 transition-all duration-200 flex items-center justify-center`} 
             onClick={() => goOffset(1)} 
             title="Giorno successivo"
           >
             →
           </button>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <button 
-            type="button" 
-            className={`${T.btnGhostSm} text-sm font-semibold px-3 py-1 rounded-lg`} 
-            onClick={goToday}
-          >
-            Oggi
-          </button>
-        </div>
       </div>
 
-      {/* Calendario popup */}
+      {/* Calendario popup con griglia giorni */}
       {showDatePicker && (
-        <div className={`mb-4 p-4 ${T.cardBg} ${T.border} rounded-xl shadow-lg`}>
-          <div className="flex items-center justify-between mb-2">
-            <span className={`text-sm font-medium ${T.subtext}`}>Seleziona data</span>
-            <button 
-              type="button" 
-              onClick={() => setShowDatePicker(false)}
-              className={`${T.btnGhostSm} text-sm`}
-            >
-              ✕
-            </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`${T.cardBg} ${T.border} rounded-2xl shadow-2xl p-8 max-w-2xl w-full`}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className={`text-2xl font-bold ${T.text} flex items-center gap-2`}>
+                📅 Seleziona data
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setShowDatePicker(false)}
+                className={`w-10 h-10 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center text-2xl font-bold transition-colors`}
+                title="Chiudi"
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Calendario visuale */}
+            <CalendarGrid 
+              currentDay={day}
+              onSelectDay={(selectedDay) => {
+                setDay(selectedDay);
+                setShowDatePicker(false);
+              }}
+              T={T}
+            />
+            
+            {/* Pulsanti rapidi */}
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              <button 
+                type="button" 
+                onClick={() => {
+                  goToday();
+                  setShowDatePicker(false);
+                }}
+                className={`${T.btnPrimary} py-3 text-sm font-semibold flex items-center justify-center gap-2`}
+              >
+                🏠 Oggi
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  goOffset(-1);
+                  setShowDatePicker(false);
+                }}
+                className={`${T.btnGhost} py-3 text-sm font-medium`}
+              >
+                ← Ieri
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  goOffset(1);
+                  setShowDatePicker(false);
+                }}
+                className={`${T.btnGhost} py-3 text-sm font-medium`}
+              >
+                Domani →
+              </button>
+            </div>
           </div>
-          <input 
-            type="date" 
-            value={`${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`} 
-            onChange={(e) => {
-              setDayFromInput(e.target.value);
-              setShowDatePicker(false);
-            }} 
-            className={T.input} 
-            autoFocus
-          />
         </div>
       )}
 
