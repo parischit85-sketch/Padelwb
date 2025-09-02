@@ -1,6 +1,37 @@
-# Marsica Padel League
+# Paris League - Sistema di Gestione Lega Padel/Tennis
 
-Una piattaforma completa per la gestione di leghe di padel con autenticazione, classifiche, statistiche e prenotazioni.
+Sistema completo per la gestione di leghe sportive con Firebase backend.
+
+## 🔥 Firebase Configuration
+
+**Progetto Firebase: `m-padelweb`**
+
+La migrazione da `marsica-padel` a `m-padelweb` è stata completata con successo.
+
+### Configurazione Environment Variables
+
+File `.env.local`:
+```bash
+VITE_FIREBASE_API_KEY=AIzaSyDMP7772cyEY1oLzo8f9hMW7Leu4lWc6OU
+VITE_FIREBASE_AUTH_DOMAIN=m-padelweb.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=m-padelweb
+VITE_FIREBASE_APP_ID=1:1004722051733:web:3ce3c4476a9e329d80999c
+VITE_FIREBASE_STORAGE_BUCKET=m-padelweb.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=1004722051733
+VITE_FIREBASE_MEASUREMENT_ID=G-0XZCHGMWVR
+```
+
+### Firestore Database
+- **Database**: Cloud Firestore
+- **Regole**: Configurate in `firestore.rules`
+- **Indici**: Configurati in `firestore.indexes.json`
+- **Collezioni**: `bookings`, `users`, `matches`
+
+## 🚀 Deploy Status
+
+✅ **Firebase Rules & Indexes**: Deployed  
+✅ **Environment Variables**: Updated  
+✅ **Netlify Environment**: Ready for redeploy
 
 ## 🚀 Funzionalità Principali
 
