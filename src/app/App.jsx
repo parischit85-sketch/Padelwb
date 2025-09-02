@@ -21,6 +21,7 @@ import Giocatori from '@features/players/Giocatori.jsx';
 import CreaPartita from '@features/crea/CreaPartita.jsx';
 import StatisticheGiocatore from '@features/stats/StatisticheGiocatore.jsx';
 import PrenotazioneCampi from '@features/prenota/PrenotazioneCampi.jsx';
+import BookingField from '@features/booking/BookingField.jsx';
 import Extra from '@features/extra/Extra.jsx';
 import CreaTornei from '@features/tornei/CreaTornei.jsx';
 import Profile from '@features/profile/Profile.jsx';
@@ -29,16 +30,8 @@ import AuthPanel from '@features/auth/AuthPanel.jsx';
 import { getDefaultBookingConfig, makeSeed } from '@data/seed.js';
 
 export default function App() {
-  // Tema
-  const [theme, setTheme] = useState(localStorage.getItem('ml-theme') || 'dark');
-  const T = useMemo(() => themeTokens(theme), [theme]);
-  useEffect(() => {
-    try {
-      localStorage.setItem('ml-theme', theme);
-    } catch {
-      void 0;
-    }
-  }, [theme]);
+  // Tema unico (niente dark mode)
+  const T = useMemo(() => themeTokens(), []);
 
   // League
   const [leagueId, setLeagueId] = useState(
@@ -274,30 +267,27 @@ export default function App() {
     setActive('stats');
   };
 
+  // Gestione prenotazioni campi: centralizzata via servizio booking; nessuna logica locale qui
+
   // Verifica se l'utente ha completato il profilo obbligatorio
   const isProfileComplete = userProfile && userProfile.firstName && userProfile.phone;
 
-  // Se l'utente non è autenticato o il profilo non è completo, mostra la pagina di autenticazione
+  // Se l'utente non è autenticato o il profilo non è completo, 
+  // mostra la pagina di autenticazione SOLO per tab che lo richiedono
+  const requiresAuth = new Set(['giocatori', 'crea', 'prenota', 'tornei', 'profile']);
+  const needsAuth = requiresAuth.has(active) && (!user || !isProfileComplete);
+
   if (authLoading) {
     return (
-      <div
-        className={`min-h-screen ${T.pageBg} ${T.text} flex items-center justify-center`}
-        data-theme={theme}
-      >
+      <div className={`min-h-screen ${T.pageBg} ${T.text} flex items-center justify-center`}>
         <div className="text-lg">Caricamento...</div>
       </div>
     );
   }
 
-  if (!user || !isProfileComplete) {
+  if (needsAuth) {
     return (
-      <div className={`min-h-screen ${T.pageBg} ${T.text}`} data-theme={theme}>
-        <style>{`
-          [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
-          [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
-          [data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-        `}</style>
-
+      <div className={`min-h-screen ${T.pageBg} ${T.text}`}>
         <header className={`sticky top-0 z-20 ${T.headerBg}`}>
           <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -314,22 +304,9 @@ export default function App() {
                 League
               </div>
             </div>
-            <button
-              type="button"
-              aria-label="Cambia tema"
-              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-              className={`ml-1 px-3 py-1.5 rounded-xl text-sm transition ring-1 ${T.ghostRing} shrink-0`}
-              title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
-            >
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </button>
+            <div />
           </div>
         </header>
-
-        {theme === 'dark' && (
-          <div className="pointer-events-none fixed inset-x-0 top-0 h-40 bg-gradient-to-b from-emerald-500/20 to-transparent blur-2xl" />
-        )}
-
         <main className="max-w-2xl mx-auto px-3 sm:px-4 py-5 sm:py-6">
           <AuthPanel T={T} user={user} userProfile={userProfile} setUserProfile={setUserProfile} />
         </main>
@@ -338,12 +315,7 @@ export default function App() {
   }
 
   return (
-    <div className={`min-h-screen ${T.pageBg} ${T.text}`} data-theme={theme}>
-      <style>{`
-        [data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
-        [data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
-        [data-theme="dark"] input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
-      `}</style>
+    <div className={`min-h-screen ${T.pageBg} ${T.text}`}>
 
       <header className={`sticky top-0 z-20 ${T.headerBg}`}>
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
@@ -363,22 +335,9 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
             <NavTabs active={active} setActive={setActive} clubMode={clubMode} T={T} user={user} />
-            <button
-              type="button"
-              aria-label="Cambia tema"
-              onClick={() => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))}
-              className={`ml-1 px-3 py-1.5 rounded-xl text-sm transition ring-1 ${T.ghostRing} shrink-0`}
-              title={theme === 'dark' ? 'Passa al tema chiaro' : 'Passa al tema scuro'}
-            >
-              {theme === 'dark' ? '☀️' : '🌙'}
-            </button>
           </div>
         </div>
       </header>
-
-      {theme === 'dark' && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 h-40 bg-gradient-to-b from-emerald-500/20 to-transparent blur-2xl" />
-      )}
 
       <main className="max-w-6xl mx-auto px-3 sm:px-4 py-5 sm:py-6">
         {!state ? (
@@ -429,6 +388,14 @@ export default function App() {
                 setState={setStateSafe}
                 players={derived.players}
                 playersById={playersById}
+              />
+            )}
+      {active === 'prenota-campo' && (
+              <BookingField
+                T={T}
+                user={user}
+        state={state}
+        setState={setStateSafe}
               />
             )}
             {active === 'tornei' && clubMode && <CreaTornei T={T} />}

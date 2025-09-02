@@ -543,7 +543,7 @@ export default function StatisticheGiocatore({
                       </tr>
                     </thead>
                     <tbody>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Rating</td>
                         <td className="text-center py-2">
                           {player ? Math.round(player.rating) : '-'}
@@ -553,7 +553,7 @@ export default function StatisticheGiocatore({
                           {player && cp ? Math.round(player.rating - cp.rating) : '-'}
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Win Rate</td>
                         <td className="text-center py-2">
                           {advancedStats ? Math.round(advancedStats.winRate) : 0}%
@@ -563,7 +563,7 @@ export default function StatisticheGiocatore({
                           {advancedStats ? Math.round(advancedStats.winRate - cWinRate) : 0}%
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Partite giocate</td>
                         <td className="text-center py-2">
                           {advancedStats ? advancedStats.totalMatches : 0}
@@ -573,7 +573,7 @@ export default function StatisticheGiocatore({
                           {advancedStats ? advancedStats.totalMatches - (cWins + cLosses) : 0}
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Efficienza game</td>
                         <td className="text-center py-2">
                           {advancedStats ? advancedStats.gameEfficiency : 0}%
@@ -586,7 +586,7 @@ export default function StatisticheGiocatore({
                           %
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Δ medio</td>
                         <td className="text-center py-2">
                           {advancedStats ? advancedStats.avgDelta : 0}
@@ -598,7 +598,7 @@ export default function StatisticheGiocatore({
                             : 0}
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Streak migliori</td>
                         <td className="text-center py-2">
                           {advancedStats ? advancedStats.maxWinStreak : 0}
@@ -608,7 +608,7 @@ export default function StatisticheGiocatore({
                           {advancedStats ? advancedStats.maxWinStreak - cMaxWin : 0}
                         </td>
                       </tr>
-                      <tr className="border-b border-black/5 dark:border-white/5">
+                      <tr className="border-b border-black/5">
                         <td className="py-2 font-medium">Streak peggiori</td>
                         <td className="text-center py-2">
                           {advancedStats ? advancedStats.maxLoseStreak : 0}
@@ -675,21 +675,21 @@ export default function StatisticheGiocatore({
                   .join(' & ');
                 const oppTeamFull = (isA ? m.teamB : m.teamA).map((id) => nameById(id)).join(' & ');
                 const selfCls = won
-                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
-                  : 'text-rose-600 dark:text-rose-400 font-semibold';
+                  ? 'text-emerald-600 font-semibold'
+                  : 'text-rose-600 font-semibold';
                 const oppCls = won
-                  ? 'text-rose-600 dark:text-rose-400 font-semibold'
-                  : 'text-emerald-600 dark:text-emerald-400 font-semibold';
+                  ? 'text-rose-600 font-semibold'
+                  : 'text-emerald-600 font-semibold';
                 const isExpanded = expandedMatchId === m.id;
 
                 return (
                   <div
                     key={m.id}
-                    className={`rounded-xl ${T.cardBg} ${T.border} overflow-hidden transition-all ${isExpanded ? 'ring-2 ring-blue-500/40 dark:ring-blue-400/60' : ''}`}
+                    className={`rounded-xl ${T.cardBg} ${T.border} overflow-hidden transition-all ${isExpanded ? 'ring-2 ring-blue-500/40' : ''}`}
                   >
                     {/* Riga compatta cliccabile */}
                     <div
-                      className="p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+                      className="p-3 flex items-center justify-between gap-3 cursor-pointer hover:bg-black/5 transition-colors"
                       role="button"
                       tabIndex={0}
                       onClick={() => setExpandedMatchId(isExpanded ? null : m.id)}
@@ -704,12 +704,12 @@ export default function StatisticheGiocatore({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${won ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200' : 'bg-rose-100 text-rose-800 dark:bg-rose-900/50 dark:text-rose-200'}`}
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${won ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}
                           >
                             {won ? '✓ Vittoria' : '✗ Sconfitta'}
                           </span>
                           {m.date && (
-                            <span className="text-xs text-gray-500 dark:text-gray-300">
+                            <span className="text-xs text-gray-500">
                               {new Date(m.date).toLocaleDateString('it-IT', {
                                 day: '2-digit',
                                 month: 'short',
@@ -719,10 +719,10 @@ export default function StatisticheGiocatore({
                         </div>
                         <div className="text-sm mb-1">
                           <span className={`${selfCls} font-medium`}>{selfTeam}</span>
-                          <span className={`mx-2 text-gray-500 dark:text-gray-300`}>vs</span>
+                          <span className={`mx-2 text-gray-500`}>vs</span>
                           <span className={`${oppCls} font-medium`}>{oppTeam}</span>
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-200">
+                        <div className="text-xs text-gray-600">
                           Sets {isA ? m.setsA : m.setsB}-{isA ? m.setsB : m.setsA} • Games{' '}
                           {isA ? m.gamesA : m.gamesB}-{isA ? m.gamesB : m.gamesA}
                         </div>
@@ -730,7 +730,7 @@ export default function StatisticheGiocatore({
                       <div className="shrink-0 text-right flex items-center gap-2">
                         <div>
                           <div
-                            className={`text-lg font-bold ${delta >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}
+                            className={`text-lg font-bold ${delta >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
                           >
                             {delta >= 0 ? '+' : ''}
                             {Math.round(delta)}

@@ -3,6 +3,7 @@ import { auth } from '@services/firebase';
 import { logout } from '@services/auth';
 import Section from '@ui/Section';
 import Modal from '@ui/Modal';
+import { loadActiveUserBookings, loadBookingHistory, cancelCloudBooking } from '@services/cloud-bookings.js';
 
 function Profile({ T }) {
   const [user, setUser] = useState(null);
@@ -10,15 +11,63 @@ function Profile({ T }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Stati per prenotazioni
+  const [activeBookings, setActiveBookings] = useState([]);
+  const [bookingHistory, setBookingHistory] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       setLoading(false);
+      
+      // Carica prenotazioni se l'utente è autenticato
+      if (user) {
+        loadUserBookings(user);
+      } else {
+        setActiveBookings([]);
+        setBookingHistory([]);
+      }
     });
 
     return () => unsubscribe();
   }, []);
+  
+  // Funzione per caricare le prenotazioni dell'utente
+  const loadUserBookings = async (user) => {
+    if (!user) return;
+    
+    setLoadingBookings(true);
+    try {
+      const [active, history] = await Promise.all([
+        loadActiveUserBookings(user.uid),
+        loadBookingHistory(user.uid)
+      ]);
+      
+      setActiveBookings(active);
+      setBookingHistory(history);
+    } catch (error) {
+      console.error('Errore caricamento prenotazioni:', error);
+    } finally {
+      setLoadingBookings(false);
+    }
+  };
+  
+  // Funzione per cancellare una prenotazione
+  const handleCancelBooking = async (bookingId) => {
+    if (!confirm('Sei sicuro di voler cancellare questa prenotazione?')) return;
+    
+    try {
+      await cancelCloudBooking(bookingId, user);
+      // Ricarica le prenotazioni
+      await loadUserBookings(user);
+      alert('Prenotazione cancellata con successo!');
+    } catch (error) {
+      console.error('Errore cancellazione prenotazione:', error);
+      alert('Errore durante la cancellazione. Riprova più tardi.');
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -133,6 +182,8 @@ function Profile({ T }) {
           <nav className="flex space-x-8">
             {[
               { id: 'overview', label: 'Panoramica', icon: '📊' },
+              { id: 'bookings', label: 'Prenotazioni Attive', icon: '📅' },
+              { id: 'history', label: 'Storico', icon: '🗂️' },
               { id: 'security', label: 'Sicurezza', icon: '🔒' },
               { id: 'activity', label: 'Attività', icon: '📈' },
             ].map((tab) => (
@@ -280,6 +331,180 @@ function Profile({ T }) {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab Prenotazioni Attive */}
+        {activeTab === 'bookings' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Prenotazioni Attive</h3>
+                <button
+                  onClick={() => loadUserBookings(user)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  🔄 Ricarica
+                </button>
+              </div>
+
+              {loadingBookings ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">Caricamento prenotazioni...</p>
+                </div>
+              ) : activeBookings.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">📅</div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Nessuna prenotazione attiva</h4>
+                  <p className="text-gray-600">Le tue prossime prenotazioni appariranno qui.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeBookings.map((booking) => (
+                    <div key={booking.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-lg font-semibold text-emerald-600">
+                              {booking.courtName || `Campo ${booking.courtId}`}
+                            </span>
+                            <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-medium rounded-full">
+                              {booking.status === 'confirmed' ? 'Confermata' : booking.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                            <div>
+                              <span className="font-medium">📅 Data:</span>
+                              <br />
+                              {new Date(booking.date).toLocaleDateString('it-IT', { 
+                                weekday: 'short', 
+                                day: 'numeric', 
+                                month: 'short' 
+                              })}
+                            </div>
+                            <div>
+                              <span className="font-medium">🕐 Orario:</span>
+                              <br />
+                              {booking.time} ({booking.duration}min)
+                            </div>
+                            <div>
+                              <span className="font-medium">💰 Prezzo:</span>
+                              <br />
+                              €{booking.price}
+                            </div>
+                            <div>
+                              <span className="font-medium">👥 Giocatori:</span>
+                              <br />
+                              {booking.players?.length || 1}
+                            </div>
+                          </div>
+                          {booking.notes && (
+                            <div className="mt-2 text-sm text-gray-600">
+                              <span className="font-medium">📝 Note:</span> {booking.notes}
+                            </div>
+                          )}
+                        </div>
+                        <div className="ml-4">
+                          <button
+                            onClick={() => handleCancelBooking(booking.id)}
+                            className="px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            ❌ Cancella
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab Storico Prenotazioni */}
+        {activeTab === 'history' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Storico Prenotazioni</h3>
+                <button
+                  onClick={() => loadUserBookings(user)}
+                  className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                >
+                  🔄 Ricarica
+                </button>
+              </div>
+
+              {loadingBookings ? (
+                <div className="text-center py-8">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <p className="mt-2 text-gray-600">Caricamento storico...</p>
+                </div>
+              ) : bookingHistory.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-6xl mb-4">🗂️</div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">Nessuna prenotazione passata</h4>
+                  <p className="text-gray-600">Lo storico delle tue prenotazioni apparirà qui.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {bookingHistory.map((booking) => (
+                    <div key={booking.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200 opacity-75">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-lg font-semibold text-gray-600">
+                              {booking.courtName || `Campo ${booking.courtId}`}
+                            </span>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {booking.status === 'confirmed' ? 'Completata' : 
+                               booking.status === 'cancelled' ? 'Cancellata' : booking.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
+                            <div>
+                              <span className="font-medium">📅 Data:</span>
+                              <br />
+                              {new Date(booking.date).toLocaleDateString('it-IT', { 
+                                weekday: 'short', 
+                                day: 'numeric', 
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </div>
+                            <div>
+                              <span className="font-medium">🕐 Orario:</span>
+                              <br />
+                              {booking.time} ({booking.duration}min)
+                            </div>
+                            <div>
+                              <span className="font-medium">💰 Prezzo:</span>
+                              <br />
+                              €{booking.price}
+                            </div>
+                            <div>
+                              <span className="font-medium">👥 Giocatori:</span>
+                              <br />
+                              {booking.players?.length || 1}
+                            </div>
+                          </div>
+                          {booking.notes && (
+                            <div className="mt-2 text-sm text-gray-600">
+                              <span className="font-medium">📝 Note:</span> {booking.notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

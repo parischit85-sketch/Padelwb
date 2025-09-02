@@ -29,13 +29,13 @@ export default function ShareButtons({ title, url, captureRef, captionBuilder, s
         const dataUrl = await mod.toPng(node, { pixelRatio: 2, backgroundColor: bg });
         try {
           const res = await fetch(dataUrl); const blob = await res.blob();
-          const file = new File([blob], 'marsica-padel.png', { type: 'image/png' });
+          const file = new File([blob], 'padel-league.png', { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             await navigator.share({ files: [file], title: title || 'Marsica Padel League', text: caption });
             return;
           }
         } catch {}
-        downloadDataURL('marsica-padel.png', dataUrl);
+  downloadDataURL('padel-league.png', dataUrl);
         try { await navigator.clipboard.writeText(caption); } catch {}
         alert('Immagine scaricata e didascalia copiata! Apri Instagram e caricala.');
         return;

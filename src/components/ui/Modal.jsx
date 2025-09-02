@@ -11,7 +11,7 @@ export default function Modal({ open, onClose, title, children, T }) {
       role="dialog"
     >
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+    className="absolute inset-0 bg-black/60"
         role="button"
         tabIndex={0}
         aria-label="Chiudi modale"
@@ -24,14 +24,14 @@ export default function Modal({ open, onClose, title, children, T }) {
         }}
       />
       <div
-        className={`relative z-10 rounded-2xl ${T.cardBg} ${T.border} p-6 w-[min(820px,92vw)] shadow-2xl`}
+    className={`relative z-10 rounded-2xl bg-white ring-1 ring-black/10 p-6 w-[min(820px,92vw)] shadow-2xl`}
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className={`px-3 py-1 rounded-lg ring-1 ${T.ghostRing} transition`}
+      className={`px-3 py-1 rounded-lg ring-1 ring-black/10 hover:bg-black/5 transition`}
           >
             Chiudi
           </button>

@@ -3,15 +3,15 @@
 import { getApps, initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 
-// TUO CONFIG (marsica-padel)
+// Config from Vite env (so we can switch projects without code changes)
 const firebaseConfig = {
-  apiKey: 'AIzaSyDtKZV6_QhkvyFKMFZklbp-5IO_-Da1-c0',
-  authDomain: 'marsica-padel.firebaseapp.com',
-  projectId: 'marsica-padel',
-  storageBucket: 'marsica-padel.firebasestorage.app',
-  messagingSenderId: '626616551949',
-  appId: '1:626616551949:web:cad93c91cc1558ac0e2344',
-  measurementId: 'G-W0B9MECRM4',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 // Inizializza una sola volta

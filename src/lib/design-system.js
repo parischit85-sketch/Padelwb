@@ -199,7 +199,7 @@ export const DS_PATTERNS = {
     `inline-flex items-center ${DS_SPACING.xs} ${DS_BORDERS.md} ${DS_TYPOGRAPHY.bodyXs} ${DS_TYPOGRAPHY.medium}`,
 
   // Loading state
-  skeleton: 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded',
+  skeleton: 'animate-pulse bg-gray-200 rounded',
 };
 
 // Helper function per combinare classi del design system con theme

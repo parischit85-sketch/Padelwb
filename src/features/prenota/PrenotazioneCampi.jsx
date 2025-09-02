@@ -462,7 +462,7 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
         {!form.start ? (
           <div className={`text-center py-8 text-lg ${T.subtext}`}>Seleziona uno slot libero nella griglia.</div>
         ) : (
-          <div className={`rounded-2xl p-6 shadow-2xl ${T.cardBg} ${T.border} backdrop-blur-lg`}>
+          <div className="rounded-2xl p-6 shadow-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-600">
             <div className="grid sm:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <label className={`text-xs font-semibold ${T.subtext}`}>Campo</label>

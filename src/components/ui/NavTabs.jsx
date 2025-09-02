@@ -7,6 +7,7 @@ export default function NavTabs({ active, setActive, clubMode, T, user }) {
   const tabs = [
     { id: 'classifica', label: 'Classifica' },
     { id: 'stats',      label: 'Statistiche' },
+    { id: 'prenota-campo', label: 'Prenota Campo' }, // Tab pubblica
     ...(clubMode ? [
       { id: 'giocatori', label: 'Giocatori' },
       { id: 'crea',      label: 'Crea Partita' },
