@@ -229,7 +229,14 @@ export default function StatisticheGiocatore({
   }, [pid, players, filteredMatches]);
 
   const partnerAndOppStats = useMemo(() => {
-    if (!pid) return { mates: [], opps: [] };
+    if (!pid) return { 
+      mates: [], 
+      opps: [], 
+      topMates: [],
+      worstMates: [],
+      topOpps: [],
+      worstOpps: []
+    };
     const played = (filteredMatches || []).filter(
       (m) => (m.teamA || []).includes(pid) || (m.teamB || []).includes(pid)
     );
@@ -266,7 +273,34 @@ export default function StatisticheGiocatore({
           (a, b) => b.total - a.total || b.winPct - a.winPct || IT_COLLATOR.compare(a.name, b.name)
         );
 
-    return { mates: toArr(matesMap), opps: toArr(oppsMap) };
+    const mates = toArr(matesMap);
+    const opps = toArr(oppsMap);
+
+    // Top 5 classifiche (senza vincolo minimo partite)
+    const topMates = mates
+      .sort((a, b) => b.winPct - a.winPct)
+      .slice(0, 5);
+    
+    const worstMates = mates
+      .sort((a, b) => a.winPct - b.winPct)
+      .slice(0, 5);
+    
+    const topOpps = opps
+      .sort((a, b) => b.winPct - a.winPct)
+      .slice(0, 5);
+    
+    const worstOpps = opps
+      .sort((a, b) => a.winPct - b.winPct)
+      .slice(0, 5);
+
+    return { 
+      mates, 
+      opps, 
+      topMates,
+      worstMates,
+      topOpps,
+      worstOpps
+    };
   }, [pid, filteredMatches, players]);
 
   const RecordBar = ({ wins, losses }) => {
@@ -638,6 +672,173 @@ export default function StatisticheGiocatore({
               Seleziona un giocatore per confrontare le statistiche
             </div>
           )}
+        </div>
+
+        {/* Mini Classifiche */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Top 5 Compagni */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-base flex items-center gap-2">
+              <span className="text-emerald-600">🏆</span>
+              Top 5 Compagni
+            </h3>
+            {partnerAndOppStats.topMates.length > 0 ? (
+              <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+                <div className="space-y-3">
+                  {partnerAndOppStats.topMates.map((mate, index) => (
+                    <div key={mate.pid} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                          index === 1 ? 'bg-gray-100 text-gray-600' :
+                          index === 2 ? 'bg-orange-100 text-orange-600' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <span className="font-medium text-sm">{mate.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-emerald-600 text-sm">
+                          {Math.round(mate.winPct)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {mate.wins}V-{mate.losses}S ({mate.total})
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={`text-sm ${T.subtext} text-center py-8`}>
+                Nessun compagno disponibile
+              </div>
+            )}
+          </div>
+
+          {/* Worst 5 Compagni */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-base flex items-center gap-2">
+              <span className="text-rose-600">😞</span>
+              Worst 5 Compagni
+            </h3>
+            {partnerAndOppStats.worstMates.length > 0 ? (
+              <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+                <div className="space-y-3">
+                  {partnerAndOppStats.worstMates.map((mate, index) => (
+                    <div key={mate.pid} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-red-100 text-red-600' :
+                          index === 1 ? 'bg-orange-100 text-orange-600' :
+                          index === 2 ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <span className="font-medium text-sm">{mate.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-rose-600 text-sm">
+                          {Math.round(mate.winPct)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {mate.wins}V-{mate.losses}S ({mate.total})
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={`text-sm ${T.subtext} text-center py-8`}>
+                Nessun compagno disponibile
+              </div>
+            )}
+          </div>
+
+          {/* Top 5 Avversari */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-base flex items-center gap-2">
+              <span className="text-emerald-600">🎯</span>
+              Top 5 Avversari Preferiti
+            </h3>
+            {partnerAndOppStats.topOpps.length > 0 ? (
+              <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+                <div className="space-y-3">
+                  {partnerAndOppStats.topOpps.map((opp, index) => (
+                    <div key={opp.pid} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-yellow-100 text-yellow-600' :
+                          index === 1 ? 'bg-gray-100 text-gray-600' :
+                          index === 2 ? 'bg-orange-100 text-orange-600' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <span className="font-medium text-sm">{opp.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-emerald-600 text-sm">
+                          {Math.round(opp.winPct)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {opp.wins}V-{opp.losses}S ({opp.total})
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={`text-sm ${T.subtext} text-center py-8`}>
+                Nessun avversario disponibile
+              </div>
+            )}
+          </div>
+
+          {/* Worst 5 Avversari */}
+          <div className="space-y-4">
+            <h3 className="font-medium text-base flex items-center gap-2">
+              <span className="text-rose-600">💀</span>
+              Top 5 Bestie Nere
+            </h3>
+            {partnerAndOppStats.worstOpps.length > 0 ? (
+              <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+                <div className="space-y-3">
+                  {partnerAndOppStats.worstOpps.map((opp, index) => (
+                    <div key={opp.pid} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-red-100 text-red-600' :
+                          index === 1 ? 'bg-orange-100 text-orange-600' :
+                          index === 2 ? 'bg-yellow-100 text-yellow-600' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <span className="font-medium text-sm">{opp.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-rose-600 text-sm">
+                          {Math.round(opp.winPct)}%
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {opp.wins}V-{opp.losses}S ({opp.total})
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className={`text-sm ${T.subtext} text-center py-8`}>
+                Nessun avversario disponibile
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Storico partite nel periodo */}

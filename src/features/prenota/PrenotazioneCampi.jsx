@@ -130,6 +130,14 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
   const courts = Array.isArray(state?.courts) ? state.courts : [];
   const bookings = Array.isArray(state?.bookings) ? state.bookings : [];
 
+  // Debug stato iniziale
+  console.log('🏟️ PrenotazioneCampi Props Debug:', {
+    stateCourts: state?.courts,
+    courtsLength: courts.length,
+    bookingsLength: bookings.length,
+    cfg: cfg
+  });
+
   // Default duration for new bookings: prefer 90' if available, otherwise first configured or 90'
   const defaultDuration = useMemo(() => {
     const list = Array.isArray(cfg?.defaultDurations) ? cfg.defaultDurations : [];
@@ -164,6 +172,19 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
   for (let t = new Date(dayStart); t < dayEnd; t = addMinutes(t, cfg.slotMinutes)) {
     timeSlots.push(new Date(t));
   }
+
+  // Debug logging
+  console.log('🏟️ PrenotazioneCampi Debug:', {
+    day: day.toISOString(),
+    dayStart: dayStart.toISOString(),
+    dayEnd: dayEnd.toISOString(),
+    courtsCount: courts.length,
+    timeSlotsCount: timeSlots.length,
+    firstSlot: timeSlots[0]?.toISOString(),
+    lastSlot: timeSlots[timeSlots.length - 1]?.toISOString(),
+    courts: courts.map(c => ({ id: c.id, name: c.name })),
+    bookingConfig: cfg
+  });
 
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
   const dayLabel = `${cap(new Intl.DateTimeFormat('it-IT', { weekday: 'long' }).format(day))} - ${String(
@@ -380,6 +401,18 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
       const bEnd = addMinutes(new Date(b.start), b.duration);
       return overlaps(bStart, bEnd, t, addMinutes(t, cfg.slotMinutes));
     });
+
+    // Debug per il primo slot di ogni campo
+    if (t.getHours() === cfg.dayStartHour && t.getMinutes() === 0) {
+      console.log(`🏟️ RenderCell Debug per ${courtName(courtId)} alle ${t.toLocaleTimeString()}:`, {
+        courtId,
+        time: t.toISOString(),
+        hasHit: !!hit,
+        bookingsForCourt: list.length,
+        now: new Date().toISOString(),
+        isInPast: t < new Date()
+      });
+    }
 
     // --- SLOT NON PRENOTABILE SE PRECEDE UNA PRENOTAZIONE ---
     const hasNextBooking = list.some((b) => {

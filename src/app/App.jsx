@@ -534,6 +534,21 @@ export default function App() {
                 playersById={playersById}
               />
             )}
+            {active === 'prenota' && !clubMode && (
+              <div className={`text-center py-12 ${T.cardBg} ${T.border} rounded-xl m-4`}>
+                <div className="text-6xl mb-4">🔒</div>
+                <h3 className={`text-xl font-bold mb-2 ${T.text}`}>Modalità Club Richiesta</h3>
+                <p className={`${T.subtext} mb-4`}>
+                  Per accedere alla prenotazione campi, devi prima sbloccare la modalità club nella sezione Extra.
+                </p>
+                <button 
+                  onClick={() => setActive('extra')} 
+                  className={`${T.btnPrimary} px-6 py-3`}
+                >
+                  Vai a Extra per sbloccare
+                </button>
+              </div>
+            )}
             {active === 'prenota-campo' && (
               <BookingField T={T} user={user} state={state} setState={setStateSafe} />
             )}
