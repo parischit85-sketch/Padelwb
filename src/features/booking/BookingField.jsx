@@ -12,6 +12,15 @@ function BookingField({ user, T, state, setState }) {
   const cfg = state?.bookingConfig || { slotMinutes: 30, dayStartHour: 8, dayEndHour: 23, defaultDurations: [60,90,120], addons: {} };
   const courtsFromState = Array.isArray(state?.courts) ? state.courts : [];
   
+  // Debug per BookingField
+  console.log('🏟️ BookingField Debug:', {
+    courtsFromState,
+    courtsLength: courtsFromState.length,
+    state: state ? 'presente' : 'null',
+    cfg,
+    user: user ? 'autenticato' : 'non autenticato'
+  });
+  
   // Stato UI
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
@@ -159,7 +168,12 @@ function BookingField({ user, T, state, setState }) {
   // Auto-seleziona oggi
   useEffect(() => {
     if (!selectedDate) {
-      setSelectedDate(new Date().toISOString().split('T')[0]);
+      // Usa il fuso orario locale invece di UTC
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      setSelectedDate(`${year}-${month}-${day}`);
     }
   }, [selectedDate]);
 
@@ -177,7 +191,22 @@ function BookingField({ user, T, state, setState }) {
 
   // Verifica disponibilità slot
   const checkSlotAvailability = useCallback((courtId, date, time) => {
-    return isSlotAvailable(courtId, date, time, duration, bookings);
+    const result = isSlotAvailable(courtId, date, time, duration, bookings);
+    
+    // Debug per il primo controllo della giornata
+    if (time === '08:00') {
+      console.log(`🏟️ Slot Availability Debug per ${time}:`, {
+        courtId,
+        date,
+        time,
+        duration,
+        bookingsCount: bookings.length,
+        result,
+        bookings: bookings.filter(b => b.courtId === courtId && b.start && b.start.includes(date))
+      });
+    }
+    
+    return result;
   }, [duration, bookings]);
 
   // Time helpers based on cfg - filtered for availability and past times
@@ -223,8 +252,14 @@ function BookingField({ user, T, state, setState }) {
     for (let i = 0; i < max; i++) {
       const d = new Date();
       d.setDate(d.getDate() + i);
+      // Usare il fuso orario locale invece di UTC
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const localDateStr = `${year}-${month}-${day}`;
+      
       out.push({
-        date: d.toISOString().split('T')[0],
+        date: localDateStr,
         label: i === 0 ? 'Oggi' : i === 1 ? 'Domani' : d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' }),
       });
     }
