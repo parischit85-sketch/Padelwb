@@ -1,10 +1,151 @@
 // =============================================
 // FILE: src/lib/theme.js
+// Theme System integrato con Design System
 // =============================================
 export const LOGO_URL = '/logo.png';
+
+// Costanti di design unificate
+export const THEME_CONSTANTS = {
+  // Border radius unificato
+  borderRadius: {
+    sm: 'rounded-lg',
+    md: 'rounded-xl',
+    lg: 'rounded-2xl',
+    full: 'rounded-full',
+  },
+
+  // Spacing consistente
+  spacing: {
+    xs: 'p-2',
+    sm: 'p-3',
+    md: 'p-4',
+    lg: 'p-6',
+    xl: 'p-8',
+  },
+
+  // Shadows unificati
+  shadows: {
+    sm: 'shadow-sm',
+    md: 'shadow-md',
+    lg: 'shadow-lg',
+    card: 'shadow-[0_0_0_1px_rgba(0,0,0,0.02)] shadow-sm',
+  },
+
+  // Transizioni standard
+  transitions: {
+    fast: 'transition-all duration-150 ease-in-out',
+    normal: 'transition-all duration-200 ease-in-out',
+    slow: 'transition-all duration-300 ease-in-out',
+  },
+};
+
 export function themeTokens(theme = 'dark') {
+  const shared = {
+    // Border radius unificato
+    borderSm: THEME_CONSTANTS.borderRadius.sm,
+    borderMd: THEME_CONSTANTS.borderRadius.md,
+    borderLg: THEME_CONSTANTS.borderRadius.lg,
+    borderFull: THEME_CONSTANTS.borderRadius.full,
+
+    // Spacing unificato
+    spacingXs: THEME_CONSTANTS.spacing.xs,
+    spacingSm: THEME_CONSTANTS.spacing.sm,
+    spacingMd: THEME_CONSTANTS.spacing.md,
+    spacingLg: THEME_CONSTANTS.spacing.lg,
+    spacingXl: THEME_CONSTANTS.spacing.xl,
+
+    // Shadows unificati
+    shadowCard: THEME_CONSTANTS.shadows.card,
+    shadowSm: THEME_CONSTANTS.shadows.sm,
+    shadowMd: THEME_CONSTANTS.shadows.md,
+    shadowLg: THEME_CONSTANTS.shadows.lg,
+
+    // Transizioni
+    transitionFast: THEME_CONSTANTS.transitions.fast,
+    transitionNormal: THEME_CONSTANTS.transitions.normal,
+    transitionSlow: THEME_CONSTANTS.transitions.slow,
+
+    // Focus ring unificato
+    focusRing: 'focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2',
+  };
+
   if (theme === 'light') {
-    return { name: 'light', pageBg: 'bg-neutral-50', text: 'text-neutral-900', subtext: 'text-neutral-600', cardBg: 'bg-white', border: 'ring-1 ring-black/5', headerBg: 'backdrop-blur bg-white/70 border-b border-black/10', neonText: 'text-emerald-600', link: 'underline underline-offset-4 decoration-emerald-600 hover:text-emerald-700', ghostRing: 'ring-black/10 hover:bg-black/5', tableHeadText: 'text-neutral-500', input: 'rounded-xl px-3 py-2 bg-white border border-black/10 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none transition', btnPrimary: 'inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium text-black bg-gradient-to-r from-emerald-400 to-lime-400 hover:brightness-110 active:brightness-95 transition', btnGhost: 'inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium ring-1 ring-black/10 hover:bg-black/5 transition', btnGhostSm: 'inline-flex items-center justify-center rounded-lg px-2 py-1 text-xs font-medium ring-1 ring-black/10 hover:bg-black/5 transition', accentGood: 'text-emerald-600', accentBad: 'text-rose-600', chip: 'bg-emerald-500 text-black' };
+    return {
+      name: 'light',
+      ...shared,
+      // Layout
+      pageBg: 'bg-neutral-50',
+      text: 'text-neutral-900',
+      subtext: 'text-neutral-600',
+      cardBg: 'bg-white',
+      border: 'ring-1 ring-black/5',
+      headerBg: 'backdrop-blur bg-white/70 border-b border-black/10',
+
+      // Brand colors
+      neonText: 'text-emerald-600',
+      link: 'underline underline-offset-4 decoration-emerald-600 hover:text-emerald-700',
+      ghostRing: 'ring-black/10 hover:bg-black/5',
+      tableHeadText: 'text-neutral-500',
+
+      // Form elements con design unificato
+      input: `${THEME_CONSTANTS.borderRadius.md} px-3 py-2 bg-white border border-black/10 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400 outline-none ${THEME_CONSTANTS.transitions.normal}`,
+
+      // Buttons con design unificato
+      btnPrimary: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.md} px-4 py-2 font-medium text-black bg-gradient-to-r from-emerald-400 to-lime-400 hover:brightness-110 active:brightness-95 ${THEME_CONSTANTS.transitions.normal} ${THEME_CONSTANTS.shadows.sm}`,
+      btnGhost: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.md} px-4 py-2 font-medium ring-1 ring-black/10 hover:bg-black/5 ${THEME_CONSTANTS.transitions.normal}`,
+      btnGhostSm: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.sm} px-2 py-1 text-xs font-medium ring-1 ring-black/10 hover:bg-black/5 ${THEME_CONSTANTS.transitions.normal}`,
+
+      // Status colors
+      accentGood: 'text-emerald-600',
+      accentBad: 'text-rose-600',
+      accentWarning: 'text-amber-600',
+      accentInfo: 'text-blue-600',
+
+      // Components
+      chip: 'bg-emerald-500 text-black',
+
+      // Cards unificati
+      card: `${THEME_CONSTANTS.borderRadius.lg} bg-white ring-1 ring-black/5 ${THEME_CONSTANTS.spacing.md} ${THEME_CONSTANTS.shadows.card}`,
+      cardHover: `${THEME_CONSTANTS.borderRadius.lg} bg-white ring-1 ring-black/5 ${THEME_CONSTANTS.spacing.md} ${THEME_CONSTANTS.shadows.md} hover:shadow-lg ${THEME_CONSTANTS.transitions.normal}`,
+    };
   }
-  return { name: 'dark', pageBg: 'bg-neutral-950', text: 'text-neutral-100', subtext: 'text-neutral-400', cardBg: 'bg-white/5', border: 'ring-1 ring-white/10', headerBg: 'backdrop-blur bg-black/30 border-b border-white/10', neonText: 'text-emerald-400', link: 'underline underline-offset-4 decoration-emerald-400 hover:text-emerald-300', ghostRing: 'ring-white/15 hover:bg-white/10', tableHeadText: 'text-neutral-300', input: 'rounded-xl px-3 py-2 bg-neutral-900/60 ring-1 ring-white/10 focus:ring-emerald-400/60 outline-none transition', btnPrimary: 'inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium text-black bg-gradient-to-r from-emerald-400 to-lime-400 hover:brightness-110 active:brightness-95 transition', btnGhost: 'inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium ring-1 ring-white/15 hover:bg-white/10 transition', btnGhostSm: 'inline-flex items-center justify-center rounded-lg px-2 py-1 text-xs font-medium ring-1 ring-white/15 hover:bg-white/10 transition', accentGood: 'text-emerald-400', accentBad: 'text-rose-400', chip: 'bg-gradient-to-r from-emerald-400 to-lime-400 text-black' };
+
+  return {
+    name: 'dark',
+    ...shared,
+    // Layout
+    pageBg: 'bg-neutral-950',
+    text: 'text-neutral-100',
+    subtext: 'text-neutral-400',
+    cardBg: 'bg-white/5',
+    border: 'ring-1 ring-white/10',
+    headerBg: 'backdrop-blur bg-black/30 border-b border-white/10',
+
+    // Brand colors
+    neonText: 'text-emerald-400',
+    link: 'underline underline-offset-4 decoration-emerald-400 hover:text-emerald-300',
+    ghostRing: 'ring-white/15 hover:bg-white/10',
+    tableHeadText: 'text-neutral-300',
+
+    // Form elements con design unificato
+    input: `${THEME_CONSTANTS.borderRadius.md} px-3 py-2 bg-neutral-900/60 ring-1 ring-white/10 focus:ring-emerald-400/60 outline-none ${THEME_CONSTANTS.transitions.normal}`,
+
+    // Buttons con design unificato
+    btnPrimary: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.md} px-4 py-2 font-medium text-black bg-gradient-to-r from-emerald-400 to-lime-400 hover:brightness-110 active:brightness-95 ${THEME_CONSTANTS.transitions.normal} ${THEME_CONSTANTS.shadows.sm}`,
+    btnGhost: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.md} px-4 py-2 font-medium ring-1 ring-white/15 hover:bg-white/10 ${THEME_CONSTANTS.transitions.normal}`,
+    btnGhostSm: `inline-flex items-center justify-center ${THEME_CONSTANTS.borderRadius.sm} px-2 py-1 text-xs font-medium ring-1 ring-white/15 hover:bg-white/10 ${THEME_CONSTANTS.transitions.normal}`,
+
+    // Status colors
+    accentGood: 'text-emerald-400',
+    accentBad: 'text-rose-400',
+    accentWarning: 'text-amber-400',
+    accentInfo: 'text-blue-400',
+
+    // Components
+    chip: 'bg-gradient-to-r from-emerald-400 to-lime-400 text-black',
+
+    // Cards unificati
+    card: `${THEME_CONSTANTS.borderRadius.lg} bg-white/5 ring-1 ring-white/10 ${THEME_CONSTANTS.spacing.md} ${THEME_CONSTANTS.shadows.card}`,
+    cardHover: `${THEME_CONSTANTS.borderRadius.lg} bg-white/5 ring-1 ring-white/10 ${THEME_CONSTANTS.spacing.md} ${THEME_CONSTANTS.shadows.md} hover:ring-white/20 ${THEME_CONSTANTS.transitions.normal}`,
+  };
 }

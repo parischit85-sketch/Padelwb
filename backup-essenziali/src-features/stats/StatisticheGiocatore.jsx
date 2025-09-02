@@ -3,7 +3,6 @@
 // =============================================
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Section from '@ui/Section.jsx';
-import StatsCard from '@ui/StatsCard.jsx';
 import ShareButtons from '@ui/ShareButtons.jsx';
 import ModernAreaChart from '@ui/charts/ModernAreaChart.jsx';
 import { byPlayerFirstAlpha, surnameOf, IT_COLLATOR } from '@lib/names.js';
@@ -171,18 +170,32 @@ export default function StatisticheGiocatore({
 
   // Nessun radar o barre: design semplificato come richiesto
 
-  // Usa il nuovo componente StatsCard unificato
-  const StatCard = ({ label, value, sub, trend, color = 'default' }) => (
-    <StatsCard
-      label={label}
-      value={value}
-      subtitle={sub}
-      trend={trend}
-      color={color}
-      size="lg"
-      T={T}
-    />
-  );
+  const StatCard = ({ label, value, sub, trend, color = 'default' }) => {
+    const colorClasses = {
+      default: '',
+      success: 'text-green-600 dark:text-green-400',
+      danger: 'text-red-600 dark:text-red-400',
+      warning: 'text-yellow-600 dark:text-yellow-400',
+      primary: 'text-blue-600 dark:text-blue-400',
+    };
+
+    return (
+      <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 text-center`}>
+        <div className={`text-xs uppercase tracking-wide ${T.subtext}`}>{label}</div>
+        <div className={`text-3xl font-bold leading-tight ${colorClasses[color]}`}>
+          {value}
+          {trend && (
+            <span
+              className={`text-xs ml-1 ${trend > 0 ? 'text-green-500' : trend < 0 ? 'text-red-500' : 'text-gray-500'}`}
+            >
+              {trend > 0 ? '↗' : trend < 0 ? '↘' : '→'}
+            </span>
+          )}
+        </div>
+        {sub ? <div className={`text-xs ${T.subtext} mt-1`}>{sub}</div> : null}
+      </div>
+    );
+  };
 
   const playersAlpha = useMemo(() => [...players].sort(byPlayerFirstAlpha), [players]);
 
