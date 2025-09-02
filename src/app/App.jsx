@@ -163,6 +163,15 @@ export default function App() {
             if (!migrated.bookingConfig.addons)
               migrated.bookingConfig.addons = getDefaultBookingConfig().addons;
             setState(migrated);
+
+            // Inizializza il riferimento ai dati appena caricati
+            const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
+            lastSavedStateRef.current = relevantFields.reduce((acc, field) => {
+              acc[field] = migrated[field];
+              return acc;
+            }, {});
+            console.log('📥 Dati caricati dal cloud, riferimento inizializzato');
+
             try {
               localStorage.setItem(LS_KEY, JSON.stringify(migrated));
             } catch {
@@ -180,6 +189,15 @@ export default function App() {
             const parsed = JSON.parse(localData);
             if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.matches)) {
               setState(parsed);
+
+              // Inizializza il riferimento ai dati locali caricati
+              const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
+              lastSavedStateRef.current = relevantFields.reduce((acc, field) => {
+                acc[field] = parsed[field] || [];
+                return acc;
+              }, {});
+              console.log('📂 Dati caricati da localStorage, riferimento inizializzato');
+
               return; // Usa dati locali
             }
           }
@@ -190,6 +208,14 @@ export default function App() {
         // Fallback: crea dati seed
         const initial = makeSeed();
         setState(initial);
+
+        // Inizializza il riferimento ai dati seed
+        const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
+        lastSavedStateRef.current = relevantFields.reduce((acc, field) => {
+          acc[field] = initial[field] || [];
+          return acc;
+        }, {});
+        console.log('🌱 Dati seed creati, riferimento inizializzato');
 
         // Solo se autenticato, prova a salvare i dati seed nel cloud
         if (user) {
@@ -242,6 +268,17 @@ export default function App() {
           const localTs = prev?._updatedAt ?? 0,
             cloudTs = migrated?._updatedAt ?? 0;
           const cloudIsNewer = cloudRev > localRev || (cloudRev === localRev && cloudTs > localTs);
+
+          if (cloudIsNewer) {
+            // Aggiorna il riferimento quando arrivano dati più recenti dal cloud
+            const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
+            lastSavedStateRef.current = relevantFields.reduce((acc, field) => {
+              acc[field] = migrated[field];
+              return acc;
+            }, {});
+            console.log('☁️ Aggiornamento dal cloud applicato, riferimento aggiornato');
+          }
+
           return cloudIsNewer ? migrated : prev;
         });
         setUpdatingFromCloud(false);
@@ -252,31 +289,73 @@ export default function App() {
     return () => unsub && unsub();
   }, [leagueId, user, authLoading]); // Dipende da autenticazione
 
-  // save (con check contenuto)
+  // Riferimento all'ultimo stato salvato per evitare salvataggi inutili
+  const lastSavedStateRef = useRef(null);
+
+  // save (con check contenuto migliorato)
   useEffect(() => {
-    if (!state || updatingFromCloud) return;
+    if (!state || updatingFromCloud || !user) return; // Non salvare se non autenticati
 
     // Confronta solo i dati rilevanti, escludendo i metadata (_updatedAt, _rev, ecc)
     const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
+
+    // Crea una "firma" dei dati rilevanti per confronto
+    const currentDataSignature = relevantFields.reduce((acc, field) => {
+      acc[field] = state[field];
+      return acc;
+    }, {});
+
+    // Confronta con l'ultimo stato effettivamente salvato
+    const lastSavedSignature = lastSavedStateRef.current;
+
     const hasChanges =
-      !localStorage.getItem(LS_KEY) ||
+      !lastSavedSignature ||
       relevantFields.some(
         (field) =>
-          JSON.stringify(state[field]) !==
-          JSON.stringify(JSON.parse(localStorage.getItem(LS_KEY))[field])
+          JSON.stringify(currentDataSignature[field]) !== JSON.stringify(lastSavedSignature[field])
       );
 
     if (hasChanges) {
+      console.log('💾 Rilevate modifiche nei dati, salvataggio in corso...', {
+        changedFields: relevantFields.filter(
+          (field) =>
+            !lastSavedSignature ||
+            JSON.stringify(currentDataSignature[field]) !==
+              JSON.stringify(lastSavedSignature[field])
+        ),
+      });
+
       try {
+        // Salva su localStorage immediatamente
         localStorage.setItem(LS_KEY, JSON.stringify(state));
-        const toSave = { ...state, _updatedAt: Date.now(), _lastWriter: clientIdRef.current };
-        const t = setTimeout(() => {
-          saveLeague(leagueId, toSave).catch(() => void 0);
+
+        // Prepara dati per cloud con metadata
+        const toSave = {
+          ...state,
+          _updatedAt: Date.now(),
+          _lastWriter: clientIdRef.current,
+          _rev: (state._rev || 0) + 1, // Incrementa revision per tracking
+        };
+
+        // Salva su cloud con debounce per evitare troppe chiamate
+        const t = setTimeout(async () => {
+          try {
+            await saveLeague(leagueId, toSave);
+            // Aggiorna il riferimento solo dopo salvataggio riuscito
+            lastSavedStateRef.current = currentDataSignature;
+            console.log('✅ Salvataggio cloud completato');
+          } catch (e) {
+            console.warn('❌ Errore salvataggio cloud:', e);
+          }
         }, 800);
+
         return () => clearTimeout(t);
-      } catch {
-        void 0;
+      } catch (e) {
+        console.warn('❌ Errore salvataggio localStorage:', e);
       }
+    } else {
+      // Solo per debug - rimuovi in produzione
+      // console.log('⏭️ Nessuna modifica rilevata, salvataggio saltato');
     }
   }, [state, leagueId, updatingFromCloud]);
 
