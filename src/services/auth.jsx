@@ -22,7 +22,8 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 // Listener auth con gestione errori
 export function onAuth(callback) {
-  return onAuthStateChanged(auth, 
+  return onAuthStateChanged(
+    auth,
     (user) => {
       try {
         callback(user);
@@ -52,35 +53,35 @@ export async function loginWithGoogle() {
     prompt: 'select_account',
   });
 
-  // Su localhost, usa sempre redirect per evitare problemi CORS
-  const isLocalhost = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1';
-
   let result = null;
   try {
-    if (isLocalhost) {
-      // Su localhost, usa redirect direttamente
-      await signInWithRedirect(auth, provider);
-      return null; // Il flusso continuerà al ritorno dalla redirect
-    } else {
-      // Su domini configurati, prova popup
-      result = await signInWithPopup(auth, provider);
-    }
+    // Prova sempre prima con popup per una migliore UX
+    console.log('🔐 Tentativo login Google con popup...');
+    result = await signInWithPopup(auth, provider);
+    console.log('✅ Login Google riuscito con popup');
   } catch (e) {
+    console.log('❌ Errore popup Google:', e?.code, e?.message);
+
     const msg = String(e?.message || '').toLowerCase();
     const code = String(e?.code || '').toLowerCase();
+
+    // Usa redirect solo se ci sono problemi specifici di popup/CORS
     const shouldRedirect =
-      code.includes('unauthorized-domain') ||
-      code.includes('operation-not-supported') ||
-      code.includes('popup-blocked') ||
+      code.includes('auth/unauthorized-domain') ||
+      code.includes('auth/operation-not-supported') ||
+      code.includes('auth/popup-blocked') ||
+      code.includes('auth/popup-closed-by-user') ||
       msg.includes('requests-from-referer') ||
-      msg.includes('cross-origin');
-    
+      msg.includes('cross-origin') ||
+      msg.includes('popup');
+
     if (shouldRedirect) {
-      console.log('Fallback a redirect per problemi popup/CORS');
+      console.log('🔄 Fallback a redirect per problemi popup/CORS');
       await signInWithRedirect(auth, provider);
       return null; // Il flusso continuerà al ritorno dalla redirect
     }
+
+    // Se non è un problema di popup, rilancia l'errore
     throw e;
   }
 

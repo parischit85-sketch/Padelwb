@@ -69,6 +69,16 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = onAuth(async (firebaseUser) => {
+      console.log(
+        '🔐 Auth state changed:',
+        firebaseUser ? 'Logged in' : 'Logged out',
+        firebaseUser?.email
+      );
+      console.log('🔧 Firebase config check:', {
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        hasApiKey: !!import.meta.env.VITE_FIREBASE_API_KEY,
+      });
       setUser(firebaseUser);
       if (firebaseUser) {
         // Carica il profilo utente da Firestore
@@ -76,6 +86,7 @@ export default function App() {
           const { getUserProfile } = await import('@services/auth.jsx');
           const profile = await getUserProfile(firebaseUser.uid);
           setUserProfile(profile);
+          console.log('👤 User profile loaded:', profile);
         } catch (error) {
           console.error('Error loading user profile:', error);
           setUserProfile(null);
@@ -127,35 +138,61 @@ export default function App() {
     });
   };
 
-  // load iniziale
+  // load iniziale - aspetta che l'autenticazione sia completata
   useEffect(() => {
+    // Non fare nulla finché l'autenticazione non è completata
+    if (authLoading) return;
+
     (async () => {
       try {
-        const fromCloud = await loadLeague(leagueId);
-        const valid =
-          fromCloud &&
-          typeof fromCloud === 'object' &&
-          Array.isArray(fromCloud.players) &&
-          Array.isArray(fromCloud.matches);
-        if (valid) {
-          const migrated = { ...fromCloud };
-          if (!Array.isArray(migrated.courts)) migrated.courts = [];
-          if (!Array.isArray(migrated.bookings)) migrated.bookings = [];
-          if (!migrated.bookingConfig) migrated.bookingConfig = getDefaultBookingConfig();
-          if (!migrated.bookingConfig.pricing)
-            migrated.bookingConfig.pricing = getDefaultBookingConfig().pricing;
-          if (!migrated.bookingConfig.addons)
-            migrated.bookingConfig.addons = getDefaultBookingConfig().addons;
-          setState(migrated);
-          try {
-            localStorage.setItem(LS_KEY, JSON.stringify(migrated));
-          } catch {
-            void 0;
+        // Se l'utente è autenticato, prova a caricare dalla cloud
+        if (user) {
+          const fromCloud = await loadLeague(leagueId);
+          const valid =
+            fromCloud &&
+            typeof fromCloud === 'object' &&
+            Array.isArray(fromCloud.players) &&
+            Array.isArray(fromCloud.matches);
+          if (valid) {
+            const migrated = { ...fromCloud };
+            if (!Array.isArray(migrated.courts)) migrated.courts = [];
+            if (!Array.isArray(migrated.bookings)) migrated.bookings = [];
+            if (!migrated.bookingConfig) migrated.bookingConfig = getDefaultBookingConfig();
+            if (!migrated.bookingConfig.pricing)
+              migrated.bookingConfig.pricing = getDefaultBookingConfig().pricing;
+            if (!migrated.bookingConfig.addons)
+              migrated.bookingConfig.addons = getDefaultBookingConfig().addons;
+            setState(migrated);
+            try {
+              localStorage.setItem(LS_KEY, JSON.stringify(migrated));
+            } catch {
+              void 0;
+            }
+            return; // Caricamento completato
           }
-        } else {
-          const initial = makeSeed();
-          setState(initial);
-          // Se non sei loggato, questo può fallire (ok): le regole bloccano write
+        }
+
+        // Se non autenticato o nessun dato valido nel cloud, usa i dati locali o seed
+        // Prima prova localStorage
+        try {
+          const localData = localStorage.getItem(LS_KEY);
+          if (localData) {
+            const parsed = JSON.parse(localData);
+            if (parsed && Array.isArray(parsed.players) && Array.isArray(parsed.matches)) {
+              setState(parsed);
+              return; // Usa dati locali
+            }
+          }
+        } catch {
+          // Ignora errori di localStorage
+        }
+
+        // Fallback: crea dati seed
+        const initial = makeSeed();
+        setState(initial);
+
+        // Solo se autenticato, prova a salvare i dati seed nel cloud
+        if (user) {
           try {
             await saveLeague(leagueId, {
               ...initial,
@@ -163,8 +200,8 @@ export default function App() {
               _rev: 1,
               _lastWriter: clientIdRef.current,
             });
-          } catch {
-            void 0;
+          } catch (e) {
+            console.warn('Failed to save initial data to cloud:', e);
           }
         }
       } catch (e) {
@@ -173,11 +210,11 @@ export default function App() {
         setState(fallback);
       }
     })();
-  }, [leagueId]);
+  }, [leagueId, user, authLoading]); // Dipende da autenticazione
 
-  // sync snapshot
+  // sync snapshot - solo se autenticato
   useEffect(() => {
-    if (!leagueId) return;
+    if (!leagueId || !user || authLoading) return; // Solo se autenticato
     let unsub = null;
     try {
       unsub = subscribeLeague(leagueId, (cloudState) => {
@@ -213,7 +250,7 @@ export default function App() {
       console.warn('subscribe err:', e);
     }
     return () => unsub && unsub();
-  }, [leagueId]);
+  }, [leagueId, user, authLoading]); // Dipende da autenticazione
 
   // save (con check contenuto)
   useEffect(() => {
@@ -244,13 +281,32 @@ export default function App() {
   }, [state, leagueId, updatingFromCloud]);
 
   // routing
-  const [active, setActive] = useState('classifica');
+  const [active, setActive] = useState('auth'); // Inizia sempre con login
   const [formulaText, setFormulaText] = useState('');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
+  // Gestione controllo accesso e redirect automatici
+  useEffect(() => {
+    if (authLoading) return; // Non fare nulla finché l'auth non è completa
+
+    if (!user) {
+      // Se non autenticato, forza la tab auth
+      if (active !== 'auth') {
+        setActive('auth');
+        console.log('🔒 Accesso negato - redirect al login');
+      }
+    } else {
+      // Se autenticato e nella tab auth, vai a "prenota-campo"
+      if (active === 'auth') {
+        setActive('prenota-campo');
+        console.log('🎯 Login riuscito - redirect a Prenota Campo');
+      }
+    }
+  }, [user, authLoading, active]);
+
   useEffect(() => {
     if (!clubMode && new Set(['giocatori', 'crea', 'prenota', 'tornei']).has(active))
-      setActive('classifica');
+      setActive('prenota-campo'); // Cambiato da 'classifica' a 'prenota-campo'
   }, [clubMode, active]);
 
   const derived = useMemo(
@@ -272,9 +328,19 @@ export default function App() {
   // Verifica se l'utente ha completato il profilo obbligatorio
   const isProfileComplete = userProfile && userProfile.firstName && userProfile.phone;
 
-  // Se l'utente non è autenticato o il profilo non è completo, 
-  // mostra la pagina di autenticazione SOLO per tab che lo richiedono
-  const requiresAuth = new Set(['giocatori', 'crea', 'prenota', 'tornei', 'profile']);
+  // TUTTE le tab richiedono autenticazione tranne 'auth'
+  // L'app deve mostrare solo il login se non autenticati
+  const requiresAuth = new Set([
+    'giocatori',
+    'crea',
+    'prenota',
+    'tornei',
+    'profile',
+    'classifica',
+    'stats',
+    'prenota-campo',
+    'extra',
+  ]);
   const needsAuth = requiresAuth.has(active) && (!user || !isProfileComplete);
 
   if (authLoading) {
@@ -316,7 +382,6 @@ export default function App() {
 
   return (
     <div className={`min-h-screen ${T.pageBg} ${T.text}`}>
-
       <header className={`sticky top-0 z-20 ${T.headerBg}`}>
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -390,13 +455,8 @@ export default function App() {
                 playersById={playersById}
               />
             )}
-      {active === 'prenota-campo' && (
-              <BookingField
-                T={T}
-                user={user}
-        state={state}
-        setState={setStateSafe}
-              />
+            {active === 'prenota-campo' && (
+              <BookingField T={T} user={user} state={state} setState={setStateSafe} />
             )}
             {active === 'tornei' && clubMode && <CreaTornei T={T} />}
 

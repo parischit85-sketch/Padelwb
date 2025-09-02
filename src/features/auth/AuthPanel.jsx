@@ -51,10 +51,27 @@ export default function AuthPanel({ T, user, userProfile, setUserProfile }) {
 
   const handleGoogleLogin = async () => {
     try {
+      console.log('🔐 Avvio login Google...');
       await loginWithGoogle();
+      console.log('✅ Login Google completato');
       // Il profilo verrà caricato automaticamente dall'App
+      // L'app cambierà automaticamente tab grazie all'effetto in App.jsx
     } catch (e) {
-      alert('Errore Google: ' + (e?.message || e));
+      console.error('❌ Errore Google login:', e);
+      let message = e?.message || String(e);
+
+      // Messaggi più chiari per errori comuni
+      if (e?.code === 'auth/popup-closed-by-user') {
+        message = 'Popup chiuso. Riprova il login.';
+      } else if (e?.code === 'auth/unauthorized-domain') {
+        message = 'Dominio non autorizzato. Controlla la configurazione Firebase Console.';
+      } else if (e?.code === 'auth/operation-not-allowed') {
+        message = 'Login Google non abilitato. Controlla la configurazione Firebase Console.';
+      } else if (e?.code === 'auth/popup-blocked') {
+        message = 'Popup bloccato dal browser. Abilita i popup per questo sito.';
+      }
+
+      alert('Errore Google: ' + message);
     }
   };
 
@@ -93,15 +110,39 @@ export default function AuthPanel({ T, user, userProfile, setUserProfile }) {
           return;
         }
         // Registrazione
+        console.log('🔐 Attempting registration for:', email.trim());
         const { registerWithEmailPassword } = await import('@services/auth.jsx');
         await registerWithEmailPassword(email.trim(), password);
+        console.log('✅ Registration successful');
       } else {
         // Login
+        console.log('🔐 Attempting login for:', email.trim());
         const { loginWithEmailPassword } = await import('@services/auth.jsx');
         await loginWithEmailPassword(email.trim(), password);
+        console.log('✅ Login successful');
       }
+      // L'app cambierà automaticamente tab grazie all'effetto in App.jsx
     } catch (e) {
-      alert('Errore accesso: ' + (e?.message || e));
+      console.error('❌ Auth error:', e);
+      let message = e?.message || String(e);
+
+      // Provide more helpful error messages
+      if (e?.code === 'auth/user-not-found') {
+        message = 'Account non trovato. Prova a registrarti prima.';
+      } else if (e?.code === 'auth/wrong-password') {
+        message = 'Password non corretta.';
+      } else if (e?.code === 'auth/email-already-in-use') {
+        message = 'Email già in uso. Prova ad accedere invece di registrarti.';
+      } else if (e?.code === 'auth/weak-password') {
+        message = 'Password troppo debole. Usa almeno 6 caratteri.';
+      } else if (e?.code === 'auth/invalid-email') {
+        message = 'Formato email non valido.';
+      } else if (e?.code === 'auth/operation-not-allowed') {
+        message =
+          'Accesso con email/password non abilitato. Controlla la configurazione Firebase Console.';
+      }
+
+      alert('Errore accesso: ' + message);
     } finally {
       setSending(false);
     }
