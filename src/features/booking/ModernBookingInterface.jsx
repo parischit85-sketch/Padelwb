@@ -118,15 +118,17 @@ function ModernBookingInterface({ user, T, state, setState }) {
   };
 
   // Funzione per scroll automatico su mobile
-  const scrollToSection = (ref) => {
+  const scrollToSection = (ref, delay = 300) => {
     if (ref?.current && window.innerWidth <= 768) { // Solo su mobile
       setTimeout(() => {
-        ref.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start',
-          inline: 'nearest'
-        });
-      }, 150); // Piccolo delay per permettere il render
+        if (ref.current) { // Doppio controllo per sicurezza
+          ref.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
+      }, delay); // Delay più lungo per permettere il render completo
     }
   };
 
@@ -318,8 +320,8 @@ function ModernBookingInterface({ user, T, state, setState }) {
     
     setSelectedTime(timeSlot.time);
     
-    // Scroll ai campi quando si seleziona un orario
-    scrollToSection(courtSectionRef);
+    // Scroll ai campi quando si seleziona un orario con delay maggiore
+    scrollToSection(courtSectionRef, 500);
     
     // Se c'è solo un campo disponibile, selezionalo automaticamente
     const availableCourts = courtsFromState.filter(court => 
@@ -379,7 +381,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     setSelectedTime('');
                     setSelectedCourt(null);
                     // Scroll agli orari quando si seleziona un giorno
-                    scrollToSection(timeSectionRef);
+                    scrollToSection(timeSectionRef, 200);
                   }}
                   className={`flex-shrink-0 p-2 sm:p-3 rounded-lg border text-center transition-all min-w-[60px] sm:min-w-[80px] ${
                     selectedDate === day.date
