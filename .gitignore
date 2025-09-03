@@ -18,4 +18,5 @@ coverage/
 
 # Local backups/archives
 ml-backup-*
+project-backup/
 *.zip
