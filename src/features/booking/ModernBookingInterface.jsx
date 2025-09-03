@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Section from '@ui/Section.jsx';
 import Badge from '@ui/Badge.jsx';
 import { createDSClasses } from '@lib/design-system.js';
@@ -11,6 +11,10 @@ function ModernBookingInterface({ user, T, state, setState }) {
   const ds = createDSClasses(T);
   const cfg = state?.bookingConfig || { slotMinutes: 30, dayStartHour: 8, dayEndHour: 23, defaultDurations: [60,90,120], addons: {} };
   const courtsFromState = Array.isArray(state?.courts) ? state.courts : [];
+  
+  // Refs per lo scroll
+  const timeSectionRef = useRef(null);
+  const courtSectionRef = useRef(null);
   
   // Stato UI
   const [selectedDate, setSelectedDate] = useState('');
@@ -110,6 +114,19 @@ function ModernBookingInterface({ user, T, state, setState }) {
         status: b.status || 'booked',
       };
     });
+  };
+
+  // Funzione per scroll automatico su mobile
+  const scrollToSection = (ref) => {
+    if (ref?.current && window.innerWidth <= 768) { // Solo su mobile
+      setTimeout(() => {
+        ref.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }, 150); // Piccolo delay per permettere il render
+    }
   };
 
   // Auto-seleziona oggi
@@ -294,6 +311,9 @@ function ModernBookingInterface({ user, T, state, setState }) {
     
     setSelectedTime(timeSlot.time);
     
+    // Scroll ai campi quando si seleziona un orario
+    scrollToSection(courtSectionRef);
+    
     // Se c'è solo un campo disponibile, selezionalo automaticamente
     const availableCourts = courtsFromState.filter(court => 
       checkSlotAvailability(court.id, selectedDate, timeSlot.time)
@@ -351,6 +371,8 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     setSelectedDate(day.date);
                     setSelectedTime('');
                     setSelectedCourt(null);
+                    // Scroll agli orari quando si seleziona un giorno
+                    scrollToSection(timeSectionRef);
                   }}
                   className={`flex-shrink-0 p-2 sm:p-3 rounded-lg border text-center transition-all min-w-[60px] sm:min-w-[80px] ${
                     selectedDate === day.date
@@ -369,7 +391,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
 
         {/* Time Grid - Responsive with 5 columns on mobile */}
         {selectedDate && (
-          <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
+          <div ref={timeSectionRef} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
               <h2 className="font-semibold text-gray-900">Seleziona l'orario</h2>
               <label className="flex items-center gap-2 text-sm">
@@ -418,7 +440,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
 
         {/* Court Selection */}
         {selectedTime && (
-          <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+          <div ref={courtSectionRef} className="bg-white rounded-lg shadow-sm border p-6 mb-6">
             <h2 className="font-semibold text-gray-900 mb-4">Prenota un campo</h2>
             <div className="space-y-4">
               {courtsFromState
@@ -453,12 +475,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     </div>
                     
                     <div className="text-right">
-                      <div className="text-lg font-bold text-blue-600">
-                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 60, cfg, {}, court.id)}€
+                      <div className="text-2xl font-bold text-blue-600">
+                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id)}€
                       </div>
-                      <div className="text-sm text-gray-500">60 min</div>
+                      <div className="text-sm text-gray-500">90 minuti</div>
                       <div className="text-xs text-gray-400 mt-1">
-                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id)}€/90min
+                        {(computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id) / 4).toFixed(1)}€ a persona
                       </div>
                     </div>
                   </div>
@@ -502,22 +524,29 @@ function ModernBookingInterface({ user, T, state, setState }) {
               <div className="mb-4">
                 <label className="block text-sm font-medium mb-2">Durata</label>
                 <div className="grid grid-cols-3 gap-2">
-                  {[60, 90, 120].map((dur) => (
-                    <button
-                      key={dur}
-                      onClick={() => setDuration(dur)}
-                      className={`p-2 rounded border text-center text-sm ${
-                        duration === dur
-                          ? 'bg-blue-500 text-white border-blue-500'
-                          : 'bg-white border-gray-200 hover:border-blue-300'
-                      }`}
-                    >
-                      <div>{dur}min</div>
-                      <div className="text-xs">
-                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), dur, cfg, { lighting, heating }, selectedCourt.id)}€
-                      </div>
-                    </button>
-                  ))}
+                  {[60, 90, 120].map((dur) => {
+                    const price = computePrice(new Date(`${selectedDate}T${selectedTime}:00`), dur, cfg, { lighting, heating }, selectedCourt.id);
+                    const pricePerPerson = (price / 4).toFixed(1);
+                    return (
+                      <button
+                        key={dur}
+                        onClick={() => setDuration(dur)}
+                        className={`p-2 rounded border text-center text-sm ${
+                          duration === dur
+                            ? 'bg-blue-500 text-white border-blue-500'
+                            : 'bg-white border-gray-200 hover:border-blue-300'
+                        }`}
+                      >
+                        <div className="font-medium">{dur}min</div>
+                        <div className="text-sm font-bold">
+                          {price}€
+                        </div>
+                        <div className="text-xs opacity-75">
+                          {pricePerPerson}€/persona
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -625,9 +654,13 @@ function ModernBookingInterface({ user, T, state, setState }) {
 
               {/* Prezzo finale */}
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center mb-1">
                   <span className="font-medium">Totale</span>
                   <span className="text-xl font-bold text-blue-600">{totalPrice}€</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-600">Prezzo per persona</span>
+                  <span className="text-sm font-medium text-gray-600">{(totalPrice / 4).toFixed(1)}€</span>
                 </div>
               </div>
 
