@@ -29,6 +29,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
   const [additionalPlayers, setAdditionalPlayers] = useState([]);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   
   // Stato dati
   const [bookings, setBookings] = useState([]);
@@ -244,8 +245,8 @@ function ModernBookingInterface({ user, T, state, setState }) {
           { lighting: !!lighting, heating: !!heating },
           selectedCourt.id
         ),
-        userPhone,
-        notes,
+        userPhone: '',
+        notes: '',
         players: [user.displayName || user.email, ...additionalPlayers.map(p => p.name)]
       };
 
@@ -281,6 +282,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
         };
         setState((s) => ({ ...s, bookings: [...(s.bookings || []), toAppBooking] }));
       }
+      
+      // Mostra animazione di successo
+      setShowSuccessAnimation(true);
+      setTimeout(() => {
+        setShowSuccessAnimation(false);
+      }, 3000);
       
       // Reset form
       setSelectedTime('');
@@ -494,9 +501,10 @@ function ModernBookingInterface({ user, T, state, setState }) {
       {/* Booking Modal */}
       {showBookingModal && selectedCourt && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-start mb-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col">
+            {/* Header fisso */}
+            <div className="p-6 border-b flex-shrink-0">
+              <div className="flex justify-between items-start">
                 <h3 className="text-lg font-semibold">Conferma Prenotazione</h3>
                 <button
                   onClick={() => setShowBookingModal(false)}
@@ -505,7 +513,10 @@ function ModernBookingInterface({ user, T, state, setState }) {
                   ✕
                 </button>
               </div>
+            </div>
 
+            {/* Contenuto scrollabile */}
+            <div className="flex-1 overflow-y-auto p-6">
               {/* Riepilogo */}
               <div className="bg-gray-50 p-4 rounded-lg mb-4">
                 <h4 className="font-medium mb-2">{selectedCourt.name}</h4>
@@ -628,30 +639,6 @@ function ModernBookingInterface({ user, T, state, setState }) {
                 )}
               </div>
 
-              {/* Contatti */}
-              <div className="mb-4 space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Telefono</label>
-                  <input
-                    type="tel"
-                    value={userPhone}
-                    onChange={(e) => setUserPhone(e.target.value)}
-                    placeholder="333 123 4567"
-                    className="w-full p-2 border rounded text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Note</label>
-                  <input
-                    type="text"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Es: doppio misto"
-                    className="w-full p-2 border rounded text-sm"
-                  />
-                </div>
-              </div>
-
               {/* Prezzo finale */}
               <div className="bg-blue-50 p-4 rounded-lg mb-4">
                 <div className="flex justify-between items-center mb-1">
@@ -663,23 +650,59 @@ function ModernBookingInterface({ user, T, state, setState }) {
                   <span className="text-sm font-medium text-gray-600">{(totalPrice / 4).toFixed(1)}€</span>
                 </div>
               </div>
+            </div>
 
-              {/* Actions */}
+            {/* Footer fisso con pulsanti */}
+            <div className="p-6 border-t flex-shrink-0 bg-white">
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="flex-1 py-2 px-4 border border-gray-300 rounded text-sm hover:bg-gray-50"
+                  className="flex-1 py-3 px-4 border border-gray-300 rounded text-sm hover:bg-gray-50 font-medium"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleBooking}
                   disabled={isSubmitting || !user}
-                  className="flex-1 py-2 px-4 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50 font-medium"
                 >
                   {isSubmitting ? 'Prenotando...' : `Conferma - ${totalPrice}€`}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Animation */}
+      {showSuccessAnimation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-bounce">
+            <div className="mb-4">
+              <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-green-500 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Prenotazione Confermata! 🎾
+            </h3>
+            <p className="text-gray-600 text-sm">
+              La tua prenotazione è stata registrata con successo
+            </p>
+            <div className="mt-4 text-xs text-gray-400">
+              Questa finestra si chiuderà automaticamente
             </div>
           </div>
         </div>
