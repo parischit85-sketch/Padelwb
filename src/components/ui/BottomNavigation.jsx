@@ -53,17 +53,23 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
   };
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30">
-      <div className="grid grid-cols-4 h-16">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom">
+      <div className="grid grid-cols-4 h-16 safe-area-inset-bottom">
         {mobileNavItems.map((item) => (
           <button
             key={item.id}
             onClick={() => handleNavClick(item)}
-            className={`flex flex-col items-center justify-center space-y-1 transition-colors ${
+            className={`bottom-nav-button flex flex-col items-center justify-center space-y-1 transition-colors touch-manipulation ${
               active === item.id
                 ? 'text-blue-600 bg-blue-50'
                 : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
             }`}
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              userSelect: 'none'
+            }}
           >
             {item.icon}
             <span className="text-xs font-medium">{item.label}</span>

@@ -81,3 +81,27 @@ html {
 .transition-all-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
+/* ===== iOS SAFE AREA SUPPORT ===== */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Fix for iOS touch targets */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Ensure bottom navigation is always clickable on iOS */
+.bottom-nav-button {
+  min-height: 44px; /* Apple's recommended minimum touch target */
+  position: relative;
+  z-index: 9999;
+}
