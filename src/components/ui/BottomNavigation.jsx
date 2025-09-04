@@ -49,31 +49,58 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
   ];
 
   const handleNavClick = (item) => {
+    console.log('Bottom nav clicked:', item.id); // Debug log
     setActive(item.id);
   };
 
+  // iOS-specific touch handlers
+  const handleTouchStart = (item) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch start:', item.id);
+  };
+
+  const handleTouchEnd = (item) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Touch end:', item.id);
+    handleNavClick(item);
+  };
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 safe-area-inset-bottom">
-      <div className="grid grid-cols-4 h-16 safe-area-inset-bottom">
+    <div 
+      className="md:hidden bottom-nav-container bg-white border-t border-gray-200"
+      style={{
+        zIndex: 999999,
+        paddingBottom: 'env(safe-area-inset-bottom)',
+        height: `calc(64px + env(safe-area-inset-bottom))`,
+      }}
+    >
+      <div className="grid grid-cols-4 h-16">
         {mobileNavItems.map((item) => (
-          <button
+          <div
             key={item.id}
-            onClick={() => handleNavClick(item)}
-            className={`bottom-nav-button flex flex-col items-center justify-center space-y-1 transition-colors touch-manipulation ${
+            className={`bottom-nav-item flex flex-col items-center justify-center space-y-1 ${
               active === item.id
                 ? 'text-blue-600 bg-blue-50'
-                : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                : 'text-gray-600'
             }`}
+            onClick={() => handleNavClick(item)}
+            onTouchStart={handleTouchStart(item)}
+            onTouchEnd={handleTouchEnd(item)}
             style={{
-              WebkitTapHighlightColor: 'transparent',
+              WebkitTapHighlightColor: 'rgba(0,0,0,0)',
               WebkitTouchCallout: 'none',
               WebkitUserSelect: 'none',
-              userSelect: 'none'
+              userSelect: 'none',
+              minHeight: '48px',
+              position: 'relative',
+              zIndex: 1000000,
             }}
           >
             {item.icon}
             <span className="text-xs font-medium">{item.label}</span>
-          </button>
+          </div>
         ))}
       </div>
     </div>

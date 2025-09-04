@@ -91,7 +91,7 @@ html {
   padding-top: env(safe-area-inset-top);
 }
 
-/* Fix for iOS touch targets */
+/* Enhanced iOS touch targets and navigation fixes */
 button, a, [role="button"] {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -99,9 +99,41 @@ button, a, [role="button"] {
   user-select: none;
 }
 
-/* Ensure bottom navigation is always clickable on iOS */
-.bottom-nav-button {
-  min-height: 44px; /* Apple's recommended minimum touch target */
-  position: relative;
-  z-index: 9999;
+/* Specific iOS bottom navigation fixes */
+.bottom-nav-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+.bottom-nav-item {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Force hardware acceleration on iOS */
+.bottom-nav-container,
+.bottom-nav-item {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Ensure no interference from other elements */
+.bottom-nav-item * {
+  pointer-events: none !important;
 }
