@@ -615,3 +615,59 @@ export async function getUserBookings(user, forceFullInit = false) {
     return [];
   }
 }
+
+// Funzione helper per aggiungere prenotazioni di test con nomi reali
+export function addTestBookingsWithParticipants(user) {
+  const testBookings = [
+    {
+      courtId: 'court-1',
+      courtName: 'Campo 1 (Outdoor)',
+      date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Domani
+      time: '20:00',
+      duration: 90,
+      lighting: true,
+      price: 32,
+      players: [
+        { name: 'Marco Rossi', phone: '333-1234567' },
+        { name: 'Luca Bianchi', phone: '333-7654321' }
+      ],
+      notes: 'Partita settimanale del mercoledì'
+    },
+    {
+      courtId: 'court-2', 
+      courtName: 'Campo 2 (Outdoor)',
+      date: new Date(Date.now() + 2*86400000).toISOString().split('T')[0], // Dopodomani
+      time: '18:30',
+      duration: 60,
+      lighting: false,
+      price: 24,
+      players: [
+        { name: 'Andrea Verdi', phone: '333-1111111' },
+        { name: 'Paolo Neri', phone: '333-2222222' },
+        { name: 'Giuseppe Conti', phone: '333-3333333' }
+      ],
+      notes: 'Torneo amichevole'
+    },
+    {
+      courtId: 'court-1',
+      courtName: 'Campo 1 (Outdoor)', 
+      date: new Date().toISOString().split('T')[0], // Oggi
+      time: '21:00',
+      duration: 120,
+      lighting: true,
+      price: 48,
+      players: [
+        { name: 'Marco Rossi', phone: '333-1234567' }
+      ],
+      notes: 'Allenamento lungo - cerco altri giocatori!'
+    }
+  ];
+
+  // Aggiungi le prenotazioni di test al localStorage
+  testBookings.forEach(bookingData => {
+    const booking = createBookingLocal(bookingData, user);
+    console.log('Added test booking:', booking);
+  });
+
+  return testBookings.length;
+}

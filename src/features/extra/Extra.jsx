@@ -27,6 +27,37 @@ export default function Extra({
   const [unlocked, setUnlocked] = useState(() => {
     try { return sessionStorage.getItem('ml-extra-unlocked') === '1'; } catch { return false; }
   });
+
+  // === Campi (nessun toggle promo: rimosso)
+  const [newCourt, setNewCourt] = useState('');
+
+  // === Config prenotazioni
+  const cfg = state?.bookingConfig || getDefaultBookingConfig();
+  const [cfgDraft, setCfgDraft] = useState(() => ({ ...cfg }));
+  useEffect(() => {
+    setCfgDraft((prev) => {
+      try {
+        const prevJson = JSON.stringify(prev);
+        const cfgJson = JSON.stringify(cfg);
+        return prevJson === cfgJson ? { ...cfg } : prev;
+      } catch {
+        return prev;
+      }
+    });
+  }, [state?.bookingConfig]);
+
+  // Guard clause: return loading state if state is not ready
+  if (!state) {
+    return (
+      <Section title="Extra – Impostazioni" T={T}>
+        <div className="text-center py-8">
+          <div className="text-2xl mb-2">⏳</div>
+          <div className={`text-sm ${T.subtext}`}>Caricamento in corso...</div>
+        </div>
+      </Section>
+    );
+  }
+
   const tryUnlock = (e) => {
     e?.preventDefault?.();
     if (pwd === 'Paris2025') {
@@ -121,8 +152,6 @@ export default function Extra({
     import('@data/seed.js').then(({ makeSeed }) => setState(makeSeed()));
   };
 
-  // === Campi (nessun toggle promo: rimosso)
-  const [newCourt, setNewCourt] = useState('');
   const addCourt = () => {
     const name = newCourt.trim();
     if (!name) return;
@@ -142,21 +171,6 @@ export default function Extra({
       courts: (s.courts || []).filter((c) => c.id !== id)
     }));
   };
-
-  // === Config prenotazioni
-  const cfg = state.bookingConfig || getDefaultBookingConfig();
-  const [cfgDraft, setCfgDraft] = useState(() => ({ ...cfg }));
-  useEffect(() => {
-    setCfgDraft((prev) => {
-      try {
-        const prevJson = JSON.stringify(prev);
-        const cfgJson = JSON.stringify(cfg);
-        return prevJson === cfgJson ? { ...cfg } : prev;
-      } catch {
-        return prev;
-      }
-    });
-  }, [state.bookingConfig]);
 
   const saveCfg = () => {
     let durations = cfgDraft.defaultDurations;
@@ -295,13 +309,13 @@ export default function Extra({
               </div>
               
               <div className="space-y-3">
-                {(state.courts || []).length === 0 ? (
+                {(state?.courts || []).length === 0 ? (
                   <div className={`text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl`}>
                     <div className="text-3xl mb-2">🏟️</div>
                     <div className={`text-sm ${T.subtext}`}>Nessun campo configurato</div>
                   </div>
                 ) : (
-                  (state.courts || []).map((c) => (
+                  (state?.courts || []).map((c) => (
                     <div key={c.id} className={`rounded-xl border border-gray-200 dark:border-gray-600 p-3 flex items-center justify-between`}>
                       <div className="flex items-center gap-3">
                         <span className="text-xl">🎾</span>
@@ -371,7 +385,7 @@ export default function Extra({
                 title="Fasce — Prezzo Pieno"
                 list={pricing.full || []}
                 onChange={setFullRules}
-                courts={state.courts || []}
+                courts={state?.courts || []}
                 T={T}
               />
 
@@ -379,7 +393,7 @@ export default function Extra({
                 title="Fasce — Scontato"
                 list={pricing.discounted || []}
                 onChange={setDiscountRules}
-                courts={state.courts || []}
+                courts={state?.courts || []}
                 T={T}
               />
             </div>

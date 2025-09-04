@@ -4,7 +4,18 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { loadLeague, saveLeague, subscribeLeague } from '@services/cloud.js';
 import { recompute } from '@lib/ranking.js';
-import { getDefaultBookingConfig, makeSeed } from '@data/seed.js';
+import { getDefaultBookingConfig } from '@data/seed.js';
+
+// Stato vuoto iniziale invece dei seed data
+function getEmptyState() {
+  return {
+    players: [],
+    matches: [],
+    courts: [],
+    bookings: [],
+    bookingConfig: getDefaultBookingConfig()
+  };
+}
 import { LS_KEY } from '@lib/ids.js';
 import { useAuth } from './AuthContext.jsx';
 
@@ -141,8 +152,8 @@ export function LeagueProvider({ children }) {
           // Ignore localStorage errors
         }
 
-        // Fallback: create seed data
-        const initial = makeSeed();
+        // Stato vuoto invece dei seed data automatici
+        const initial = getEmptyState();
         setState(initial);
 
         const relevantFields = ['players', 'matches', 'courts', 'bookings', 'bookingConfig'];
@@ -151,23 +162,18 @@ export function LeagueProvider({ children }) {
           return acc;
         }, {});
 
-        // Save seed to cloud if authenticated
-        if (user) {
-          try {
-            await saveLeague(leagueId, {
-              ...initial,
-              _updatedAt: Date.now(),
-              _rev: 1,
-              _lastWriter: clientIdRef.current,
-            });
-          } catch (e) {
-            console.warn('Failed to save initial data to cloud:', e);
-          }
+        console.log('� App inizializzata con stato vuoto - aggiungi i tuoi dati!');
+        
+        // Salva solo in localStorage
+        try {
+          localStorage.setItem(LS_KEY, JSON.stringify(initial));
+        } catch {
+          void 0;
         }
       } catch (err) {
         console.error('League load error:', err);
         setError(err);
-        const fallback = makeSeed();
+        const fallback = getEmptyState();
         setState(fallback);
       } finally {
         setLoading(false);

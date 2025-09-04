@@ -18,6 +18,7 @@ export default defineConfig({
       '@pages': path.resolve(__dirname, 'src/pages'),
       '@layouts': path.resolve(__dirname, 'src/layouts'),
       '@components': path.resolve(__dirname, 'src/components'),
+      '@utils': path.resolve(__dirname, 'src/utils'),
       // (opzionale) se vuoi anche lo stile "@/qualcosa"
       // '@': path.resolve(__dirname, 'src'),
     }
