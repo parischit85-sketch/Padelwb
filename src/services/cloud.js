@@ -3,7 +3,7 @@
 // =============================================
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -23,6 +23,28 @@ export async function loginWithGoogle() {
 export async function loadLeague(leagueId) {
   const snap = await getDoc(doc(db, 'leagues', leagueId));
   return snap.exists() ? snap.data() : null;
+}
+
+export async function listLeagues() {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'leagues'));
+    const leagues = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      leagues.push({
+        id: doc.id,
+        name: data.name || doc.id,
+        players: data.players?.length || 0,
+        matches: data.matches?.length || 0,
+        lastUpdated: data._updatedAt ? new Date(data._updatedAt).toLocaleString() : 'N/A',
+        courts: data.courts?.length || 0
+      });
+    });
+    return leagues.sort((a, b) => (b._updatedAt || 0) - (a._updatedAt || 0));
+  } catch (error) {
+    console.error('Errore nel recupero della lista backup:', error);
+    return [];
+  }
 }
 
 export async function saveLeague(leagueId, data) {

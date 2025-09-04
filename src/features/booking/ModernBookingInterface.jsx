@@ -396,11 +396,15 @@ function ModernBookingInterface({ user, T, state, setState }) {
 
   return (
   <div className="min-h-screen bg-gray-50">
+      {/* Header mobile-friendly */}
+      <div className="bg-white border-b px-4 py-3 sm:hidden">
+        <h1 className="text-lg font-semibold text-gray-900">Prenota Campo</h1>
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Messaggi di stato */}
+        {/* Messaggi di stato - Ottimizzati per mobile */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${
+          <div className={`mb-6 p-3 sm:p-4 rounded-lg text-sm ${
             message.type === 'error' 
               ? 'bg-red-100 text-red-800 border border-red-200'
               : 'bg-emerald-100 text-emerald-800 border border-emerald-200'
@@ -409,9 +413,9 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         )}
 
-        {/* Selezione Giorno - Scorrevole su mobile, fino a 10 giorni */}
-        <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
-          <h2 className="font-semibold text-gray-900 mb-4">Seleziona il giorno</h2>
+        {/* Selezione Giorno - Migliorata per mobile */}
+        <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-6 mb-4 sm:mb-6">
+          <h2 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Seleziona il giorno</h2>
           <div className="overflow-x-auto scrollbar-hide">
             <div className="flex gap-2 pb-2" style={{ minWidth: 'max-content' }}>
               {availableDays.slice(0, 10).map((day) => (
@@ -427,11 +431,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
                   className={`flex-shrink-0 p-2 sm:p-3 rounded-lg border text-center transition-all min-w-[60px] sm:min-w-[80px] ${
                     selectedDate === day.date
                       ? 'bg-blue-500 text-white border-blue-500 shadow-md'
-                      : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      : 'bg-white border-gray-200 hover:border-gray-300 hover:bg-gray-50 active:bg-gray-100'
                   }`}
                 >
                   <div className="text-xs font-medium mb-1">{day.dayName}</div>
-                  <div className="text-lg font-bold">{day.dayNumber}</div>
+                  <div className="text-base sm:text-lg font-bold">{day.dayNumber}</div>
                   <div className="text-xs opacity-75">{day.monthName}</div>
                 </button>
               ))}
@@ -439,12 +443,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         </div>
 
-        {/* Griglia Orari - Responsiva con 5 colonne su mobile */}
+        {/* Griglia Orari - Ottimizzata per touch */}
         {selectedDate && (
-          <div ref={timeSectionRef} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-              <h2 className="font-semibold text-gray-900">Seleziona l'orario</h2>
-              <label className="flex items-center gap-2 text-sm">
+          <div ref={timeSectionRef} className="bg-white rounded-lg shadow-sm border p-3 sm:p-6 mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-3">
+              <h2 className="font-semibold text-gray-900 text-sm sm:text-base">Seleziona l'orario</h2>
+              <label className="flex items-center gap-2 text-xs sm:text-sm">
                 <input
                   type="checkbox"
                   checked={showOnlyAvailable}
@@ -455,17 +459,17 @@ function ModernBookingInterface({ user, T, state, setState }) {
               </label>
             </div>
             
-            <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-8 gap-2">
               {timeSlots.map((slot) => (
                 <button
                   key={slot.time}
                   onClick={() => handleTimeSlotClick(slot)}
                   disabled={!slot.isAvailable}
-                  className={`p-2 sm:p-3 rounded-lg border text-center transition-all relative ${
+                  className={`p-3 sm:p-3 rounded-lg border text-center transition-all relative min-h-[56px] touch-manipulation ${
                     selectedTime === slot.time
                       ? 'bg-blue-500 text-white border-blue-500 shadow-md'
                       : slot.isAvailable
-                      ? 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+                      ? 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 cursor-pointer active:bg-blue-100'
                       : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
@@ -488,11 +492,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         )}
 
-        {/* Selezione Campo */}
+        {/* Selezione Campo - Mobile-first design */}
         {selectedTime && (
-          <div ref={courtSectionRef} className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Prenota un campo</h2>
-            <div className="space-y-4">
+          <div ref={courtSectionRef} className="bg-white rounded-lg shadow-sm border p-3 sm:p-6 mb-4 sm:mb-6">
+            <h2 className="font-semibold text-gray-900 mb-3 sm:mb-4 text-sm sm:text-base">Prenota un campo</h2>
+            <div className="space-y-3 sm:space-y-4">
               {courtsFromState
                 .filter(court => checkSlotAvailability(court.id, selectedDate, selectedTime))
                 .map((court) => (
@@ -502,12 +506,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     setSelectedCourt(court);
                     setShowBookingModal(true);
                   }}
-                  className="border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer hover:border-blue-300"
+                  className="border rounded-lg p-3 sm:p-4 hover:shadow-md transition-all cursor-pointer hover:border-blue-300 active:bg-gray-50 touch-manipulation"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">{court.name}</h3>
+                        <h3 className="font-semibold text-gray-900 text-sm sm:text-base">{court.name}</h3>
                         {court.premium && (
                           <Badge variant="warning" size="xs" T={T}>Premium</Badge>
                         )}
@@ -525,10 +529,10 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     </div>
                     
                     <div className="text-right">
-                      <div className="text-2xl font-bold text-blue-600">
+                      <div className="text-xl sm:text-2xl font-bold text-blue-600">
                         {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id)}€
                       </div>
-                      <div className="text-sm text-gray-500">90 minuti</div>
+                      <div className="text-xs sm:text-sm text-gray-500">90 minuti</div>
                       <div className="text-xs text-gray-400 mt-1">
                         {(computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id) / 4).toFixed(1)}€ a persona
                       </div>
@@ -541,43 +545,64 @@ function ModernBookingInterface({ user, T, state, setState }) {
         )}
       </div>
 
-      {/* Booking Modal */}
+      {/* Booking Modal - Completamente ridisegnato per mobile */}
       {showBookingModal && selectedCourt && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 p-0 sm:p-4 backdrop-fade">
+          {/* Mobile: Full screen bottom sheet */}
+          <div className="bg-white w-full h-auto max-h-[95vh] sm:max-w-md sm:max-h-[90vh] sm:rounded-lg rounded-t-2xl sm:rounded-t-lg flex flex-col slide-up-mobile sm:animate-none shadow-2xl">
+            
+            {/* Mobile handle bar */}
+            <div className="flex justify-center pt-2 pb-1 sm:hidden">
+              <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+            </div>
+            
             {/* Header fisso */}
-            <div className="p-6 border-b flex-shrink-0">
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold">Conferma Prenotazione</h3>
+            <div className="px-4 py-3 sm:p-6 border-b flex-shrink-0 touch-select-none">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-900">Conferma Prenotazione</h3>
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="w-8 h-8 sm:w-6 sm:h-6 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 touch-manipulation tap-highlight-transparent text-gray-500 hover:text-gray-700"
                 >
-                  ✕
+                  <span className="text-lg sm:text-base">✕</span>
                 </button>
               </div>
             </div>
 
             {/* Contenuto scrollabile */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {/* Riepilogo */}
-              <div className="bg-gray-50 p-4 rounded-lg mb-4">
-                <h4 className="font-medium mb-2">{selectedCourt.name}</h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <div>📅 {new Date(selectedDate).toLocaleDateString('it-IT', { 
-                    weekday: 'long', 
-                    day: 'numeric', 
-                    month: 'long' 
-                  })}</div>
-                  <div>🕐 {selectedTime}</div>
-                  <div>⏱️ {duration} minuti</div>
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:p-6">
+              {/* Riepilogo con design più accattivante */}
+              <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-xl mb-6 border border-blue-200">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">🎾</span>
+                  </div>
+                  <h4 className="font-semibold text-gray-900 text-lg">{selectedCourt.name}</h4>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-700">
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-500">📅</span>
+                    <span>{new Date(selectedDate).toLocaleDateString('it-IT', { 
+                      weekday: 'short', 
+                      day: 'numeric', 
+                      month: 'short' 
+                    })}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-500">🕐</span>
+                    <span>{selectedTime}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-blue-500">⏱️</span>
+                    <span>{duration} min</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Durata */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">Durata</label>
-                <div className="grid grid-cols-3 gap-2">
+              {/* Durata - Design più moderno e touch-friendly */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-3 text-gray-900">Durata partita</label>
+                <div className="grid grid-cols-3 gap-3">
                   {[60, 90, 120].map((dur) => {
                     const price = computePrice(new Date(`${selectedDate}T${selectedTime}:00`), dur, cfg, { lighting, heating }, selectedCourt.id);
                     const pricePerPerson = (price / 4).toFixed(1);
@@ -585,17 +610,17 @@ function ModernBookingInterface({ user, T, state, setState }) {
                       <button
                         key={dur}
                         onClick={() => setDuration(dur)}
-                        className={`p-2 rounded border text-center text-sm ${
+                        className={`p-4 rounded-xl border-2 text-center transition-all touch-manipulation ${
                           duration === dur
-                            ? 'bg-blue-500 text-white border-blue-500'
-                            : 'bg-white border-gray-200 hover:border-blue-300'
+                            ? 'bg-blue-500 text-white border-blue-500 shadow-lg scale-105'
+                            : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-blue-50 active:bg-blue-100'
                         }`}
                       >
-                        <div className="font-medium">{dur}min</div>
-                        <div className="text-sm font-bold">
+                        <div className="font-bold text-lg">{dur}min</div>
+                        <div className="text-lg font-bold mt-1">
                           {price}€
                         </div>
-                        <div className="text-xs opacity-75">
+                        <div className="text-xs opacity-75 mt-1">
                           {pricePerPerson}€/persona
                         </div>
                       </button>
@@ -604,112 +629,147 @@ function ModernBookingInterface({ user, T, state, setState }) {
                 </div>
               </div>
 
-              {/* Servizi Extra */}
+              {/* Servizi Extra - Design migliorato */}
               {(cfg.addons?.lightingEnabled || cfg.addons?.heatingEnabled) && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Servizi Extra</label>
-                  <div className="space-y-2">
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold mb-3 text-gray-900">Servizi Extra</label>
+                  <div className="space-y-3">
                     {cfg.addons?.lightingEnabled && (
-                      <label className="flex items-center gap-2">
+                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 touch-manipulation">
                         <input
                           type="checkbox"
                           checked={lighting}
                           onChange={(e) => setLighting(e.target.checked)}
-                          className="rounded"
+                          className="rounded w-5 h-5 text-blue-500"
                         />
-                        <span className="text-sm">Illuminazione (+{cfg.addons?.lightingFee || 0}€)</span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">Illuminazione</div>
+                          <div className="text-xs text-gray-600">+{cfg.addons?.lightingFee || 0}€</div>
+                        </div>
+                        <span className="text-2xl">💡</span>
                       </label>
                     )}
                     {cfg.addons?.heatingEnabled && (
-                      <label className="flex items-center gap-2">
+                      <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 touch-manipulation">
                         <input
                           type="checkbox"
                           checked={heating}
                           onChange={(e) => setHeating(e.target.checked)}
-                          className="rounded"
+                          className="rounded w-5 h-5 text-blue-500"
                         />
-                        <span className="text-sm">Riscaldamento (+{cfg.addons?.heatingFee || 0}€)</span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">Riscaldamento</div>
+                          <div className="text-xs text-gray-600">+{cfg.addons?.heatingFee || 0}€</div>
+                        </div>
+                        <span className="text-2xl">🔥</span>
                       </label>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* Giocatori */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">
+              {/* Giocatori - Design completamente rinnovato */}
+              <div className="mb-6">
+                <label className="block text-sm font-semibold mb-3 text-gray-900">
                   Giocatori ({1 + additionalPlayers.length}/4)
                 </label>
                 
                 {/* Organizzatore */}
-                <div className="mb-2 p-2 bg-blue-50 rounded border">
-                  <div className="text-sm font-medium">{user?.displayName || user?.email}</div>
-                  <div className="text-xs text-blue-600">Organizzatore</div>
+                <div className="mb-3 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm">👑</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-gray-900">{user?.displayName || user?.email}</div>
+                      <div className="text-xs text-blue-600 font-medium">Organizzatore</div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Giocatori aggiuntivi */}
-                {additionalPlayers.map((player) => (
-                  <div key={player.id} className="mb-2 p-2 bg-gray-50 rounded border flex justify-between items-center">
-                    <span className="text-sm">{player.name}</span>
-                    <button
-                      onClick={() => removePlayer(player.id)}
-                      className="text-red-500 hover:text-red-700 text-sm"
-                    >
-                      Rimuovi
-                    </button>
-                  </div>
-                ))}
+                <div className="space-y-2 mb-4">
+                  {additionalPlayers.map((player, index) => (
+                    <div key={player.id} className="p-3 bg-gray-50 rounded-xl flex items-center gap-3">
+                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm">👤</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-gray-900">{player.name}</div>
+                        <div className="text-xs text-gray-500">Giocatore {index + 2}</div>
+                      </div>
+                      <button
+                        onClick={() => removePlayer(player.id)}
+                        className="w-8 h-8 bg-red-100 hover:bg-red-200 text-red-600 rounded-full flex items-center justify-center touch-manipulation transition-colors"
+                      >
+                        <span className="text-sm">✕</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
                 
                 {/* Aggiungi giocatore */}
                 {additionalPlayers.length < 3 && (
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <input
                       type="text"
                       value={newPlayerName}
                       onChange={(e) => setNewPlayerName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addPlayer()}
-                      placeholder="Nome giocatore"
-                      className="flex-1 p-2 border rounded text-sm"
+                      placeholder="Nome nuovo giocatore"
+                      className="flex-1 p-3 border-2 border-gray-200 rounded-xl text-sm focus:border-blue-500 focus:outline-none"
                     />
                     <button
                       onClick={addPlayer}
                       disabled={!newPlayerName.trim()}
-                      className="px-3 py-2 bg-blue-500 text-white rounded text-sm disabled:opacity-50"
+                      className="px-6 py-3 bg-blue-500 text-white rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation hover:bg-blue-600 transition-colors"
                     >
-                      +
+                      Aggiungi
                     </button>
                   </div>
                 )}
               </div>
 
-              {/* Prezzo finale */}
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="font-medium">Totale</span>
-                  <span className="text-xl font-bold text-blue-600">{totalPrice}€</span>
+              {/* Prezzo finale - Design premium */}
+              <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-xl border border-green-200 mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-semibold text-gray-900">Totale partita</span>
+                  <span className="text-2xl font-bold text-green-600">{totalPrice}€</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Prezzo per persona</span>
-                  <span className="text-sm font-medium text-gray-600">{(totalPrice / 4).toFixed(1)}€</span>
+                  <span className="text-sm text-gray-600">Costo per persona</span>
+                  <span className="text-lg font-semibold text-green-600">{(totalPrice / 4).toFixed(1)}€</span>
+                </div>
+                <div className="mt-2 pt-2 border-t border-green-200">
+                  <div className="text-xs text-green-700 font-medium">
+                    💰 Pagamento in loco • 🎾 Racchette incluse
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer fisso con pulsanti */}
-            <div className="p-6 border-t flex-shrink-0 bg-white">
+            {/* Footer fisso con pulsanti rinnovati */}
+            <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0">
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowBookingModal(false)}
-                  className="flex-1 py-3 px-4 border border-gray-300 rounded text-sm hover:bg-gray-50 font-medium"
+                  className="flex-1 py-4 px-4 border-2 border-gray-300 rounded-xl text-sm font-semibold hover:bg-gray-50 touch-manipulation transition-colors"
                 >
                   Annulla
                 </button>
                 <button
                   onClick={handleBooking}
                   disabled={isSubmitting || !user}
-                  className="flex-1 py-3 px-4 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 disabled:opacity-50 font-medium"
+                  className="flex-2 py-4 px-6 bg-blue-500 text-white rounded-xl text-sm font-semibold hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation transition-colors shadow-lg"
                 >
-                  {isSubmitting ? 'Prenotando...' : `Conferma - ${totalPrice}€`}
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Prenotando...
+                    </div>
+                  ) : (
+                    `Conferma - ${totalPrice}€`
+                  )}
                 </button>
               </div>
             </div>

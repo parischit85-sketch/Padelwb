@@ -10,9 +10,20 @@ import PrenotazioneCampi from '@features/prenota/PrenotazioneCampi.jsx';
 
 export default function AdminBookingsPage() {
   const navigate = useNavigate();
-  const { state, setState, derived, playersById } = useLeague();
+  const { state, setState, derived, playersById, loading } = useLeague();
   const { clubMode } = useUI();
   const T = React.useMemo(() => themeTokens(), []);
+
+  // Show loading state
+  if (loading || !state) {
+    return (
+      <div className={`text-center py-12 ${T.cardBg} ${T.border} rounded-xl m-4`}>
+        <div className="text-4xl mb-4">⏳</div>
+        <h3 className={`text-lg font-medium mb-2 ${T.text}`}>Caricamento...</h3>
+        <p className={`${T.subtext}`}>Caricamento configurazione campi in corso...</p>
+      </div>
+    );
+  }
 
   if (!clubMode) {
     return (

@@ -35,6 +35,56 @@ html {
   background: #a8a8a8;
 }
 
+/* ===== MOBILE TOUCH OPTIMIZATIONS ===== */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on touch elements */
+.touch-select-none {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Better tap targets for mobile */
+.tap-highlight-transparent {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-friendly modal slide up animation */
+@keyframes slide-up-mobile {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-up-mobile {
+  animation: slide-up-mobile 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Smooth backdrop fade */
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.backdrop-fade {
+  animation: backdrop-fade 0.3s ease-out;
+}
+
 /* ===== ANIMATIONS ===== */
 @keyframes slide-in-right {
   from {

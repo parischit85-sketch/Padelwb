@@ -21,7 +21,7 @@ import Giocatori from '@features/players/Giocatori.jsx';
 import CreaPartita from '@features/crea/CreaPartita.jsx';
 import StatisticheGiocatore from '@features/stats/StatisticheGiocatore.jsx';
 import PrenotazioneCampi from '@features/prenota/PrenotazioneCampi.jsx';
-import BookingField from '@features/booking/BookingField.jsx';
+import ModernBookingInterface from '@features/booking/ModernBookingInterface.jsx';
 import Extra from '@features/extra/Extra.jsx';
 import CreaTornei from '@features/tornei/CreaTornei.jsx';
 import Profile from '@features/profile/Profile.jsx';
@@ -500,7 +500,14 @@ export default function App() {
                 onShowFormula={setFormulaText}
               />
             )}
-            {active === 'prenota' && clubMode && (
+            {active === 'prenota' && clubMode && !state && (
+              <div className={`text-center py-12 ${T.cardBg} ${T.border} rounded-xl m-4`}>
+                <div className="text-4xl mb-4">⏳</div>
+                <h3 className={`text-lg font-medium mb-2 ${T.text}`}>Caricamento...</h3>
+                <p className={`${T.subtext}`}>Caricamento configurazione campi in corso...</p>
+              </div>
+            )}
+            {active === 'prenota' && clubMode && state && (
               <PrenotazioneCampi
                 T={T}
                 state={state}
@@ -525,7 +532,7 @@ export default function App() {
               </div>
             )}
             {active === 'prenota-campo' && (
-              <BookingField T={T} user={user} state={state} setState={setStateSafe} />
+              <ModernBookingInterface T={T} user={user} state={state} setState={setStateSafe} />
             )}
             {active === 'tornei' && clubMode && <CreaTornei T={T} />}
 

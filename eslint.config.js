@@ -33,6 +33,12 @@ export default [
             ['@lib', './src/lib'],
             ['@data', './src/data'],
             ['@services', './src/services'],
+            ['@contexts', './src/contexts'],
+            ['@hooks', './src/hooks'],
+            ['@pages', './src/pages'],
+            ['@layouts', './src/layouts'],
+            ['@components', './src/components'],
+            ['@utils', './src/utils'],
           ],
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
@@ -64,6 +70,10 @@ export default [
       'jsx-a11y/label-has-associated-control': 'warn',
       'jsx-a11y/no-static-element-interactions': 'warn',
       'jsx-a11y/click-events-have-key-events': 'warn',
+  // Evita errori per apostrofi non scappati in stringhe italiane
+  'react/no-unescaped-entities': 'off',
+  // Evita falsi positivi su import nominati quando i file JS non esportano type info
+  'import/named': 'off',
     },
   },
   // TS-specific tweaks (only adjust rules, no invalid spreads)

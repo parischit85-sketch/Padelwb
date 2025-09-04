@@ -120,82 +120,93 @@ export default function RulesEditor({ title, list = [], onChange, courts = [], T
             {/* X rimuovi */}
             <button
               type="button"
-              className="absolute top-2 right-2 text-rose-500 text-xs hover:underline"
+              className="absolute top-2 right-2 text-rose-500 text-xs hover:underline z-10"
               onClick={() => remove(i)}
               title="Rimuovi fascia"
             >
               ✕
             </button>
 
-            {/* Badge prezzo per persona (90') in basso a destra */}
-            <div
-              className="absolute bottom-2 right-3 px-2 py-1 rounded-md ring-1"
-              style={{ borderColor: 'rgba(16,185,129,0.45)' }}
-            >
-              <div className="text-xs font-normal mb-1">
-                1:30h/persona
+            <div className="grid lg:grid-cols-2 gap-3">
+              {/* Sezione principale con form */}
+              <div className="space-y-3">
+                <div className="grid sm:grid-cols-2 gap-2">
+                  <div className="flex flex-col">
+                    <label className={`text-xs ${T.subtext}`}>Etichetta</label>
+                    <input
+                      value={r.label || ''}
+                      onChange={(e) => update(i, { label: e.target.value })}
+                      className={T.input}
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className={`text-xs ${T.subtext}`}>€/h</label>
+                    <input
+                      type="number"
+                      value={r.eurPerHour ?? 0}
+                      onChange={(e) => update(i, { eurPerHour: Number(e.target.value) || 0 })}
+                      className={T.input}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="flex flex-col">
+                    <label className={`text-xs ${T.subtext}`}>Inizio</label>
+                    <input
+                      type="time"
+                      value={toTime(r.from)}
+                      onChange={(e) => update(i, { from: toTime(e.target.value) })}
+                      className={T.input}
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className={`text-xs ${T.subtext}`}>Fine</label>
+                    <input
+                      type="time"
+                      value={toTime(r.to)}
+                      onChange={(e) => update(i, { to: toTime(e.target.value) })}
+                      className={T.input}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className={`text-xs ${T.subtext}`}>Giorni</div>
+                  <DayToggles
+                    value={Array.isArray(r.days) ? r.days : []}
+                    onChange={(days) => update(i, { days })}
+                    T={T}
+                  />
+                </div>
+
+                <CourtsPicker
+                  courts={courts}
+                  value={Array.isArray(r.courts) ? r.courts : []}
+                  onChange={(courtsSel) => update(i, { courts: courtsSel })}
+                  T={T}
+                />
               </div>
-              <div className="text-2xl md:text-3xl font-extrabold leading-none">
-                {perPlayer90(r.eurPerHour)}
+
+              {/* Sezione prezzo - separata e responsive */}
+              <div className="flex lg:justify-end">
+                <div
+                  className="flex-shrink-0 px-3 py-2 rounded-lg ring-1 bg-emerald-50/50 dark:bg-emerald-900/20"
+                  style={{ borderColor: 'rgba(16,185,129,0.45)' }}
+                >
+                  <div className="text-center">
+                    <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300 mb-1">
+                      1:30h/persona
+                    </div>
+                    <div className="text-xl sm:text-2xl font-extrabold leading-none text-emerald-800 dark:text-emerald-200">
+                      {perPlayer90(r.eurPerHour)}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-
-            <div className="grid sm:grid-cols-4 gap-2">
-              <div className="flex flex-col">
-                <label className={`text-xs ${T.subtext}`}>Etichetta</label>
-                <input
-                  value={r.label || ''}
-                  onChange={(e) => update(i, { label: e.target.value })}
-                  className={T.input}
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className={`text-xs ${T.subtext}`}>€/h</label>
-                <input
-                  type="number"
-                  value={r.eurPerHour ?? 0}
-                  onChange={(e) => update(i, { eurPerHour: Number(e.target.value) || 0 })}
-                  className={T.input}
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className={`text-xs ${T.subtext}`}>Inizio</label>
-                <input
-                  type="time"
-                  value={toTime(r.from)}
-                  onChange={(e) => update(i, { from: toTime(e.target.value) })}
-                  className={T.input}
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className={`text-xs ${T.subtext}`}>Fine</label>
-                <input
-                  type="time"
-                  value={toTime(r.to)}
-                  onChange={(e) => update(i, { to: toTime(e.target.value) })}
-                  className={T.input}
-                />
-              </div>
-            </div>
-
-            <div className="mt-2">
-              <div className={`text-xs ${T.subtext}`}>Giorni</div>
-              <DayToggles
-                value={Array.isArray(r.days) ? r.days : []}
-                onChange={(days) => update(i, { days })}
-                T={T}
-              />
-            </div>
-
-            <CourtsPicker
-              courts={courts}
-              value={Array.isArray(r.courts) ? r.courts : []}
-              onChange={(courtsSel) => update(i, { courts: courtsSel })}
-              T={T}
-            />
           </div>
         ))}
       </div>

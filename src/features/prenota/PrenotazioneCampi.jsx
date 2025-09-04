@@ -124,7 +124,15 @@ function CalendarGrid({ currentDay, onSelectDay, T }) {
 }
 
 export default function PrenotazioneCampi({ state, setState, players, playersById, T }) {
-  const cfg = state.bookingConfig;
+  // Safe access to bookingConfig with fallback
+  const cfg = state?.bookingConfig || { 
+    slotMinutes: 30, 
+    dayStartHour: 8, 
+    dayEndHour: 23, 
+    defaultDurations: [60, 90, 120],
+    addons: {}
+  };
+  
   const [day, setDay] = useState(() => floorToSlot(new Date(), cfg.slotMinutes));
   const [showDatePicker, setShowDatePicker] = useState(false);
   const courts = Array.isArray(state?.courts) ? state.courts : [];
@@ -522,6 +530,17 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
 
   return (
     <Section title="Gestione Campi" T={T}>
+      {/* Show loading state if state is null */}
+      {!state ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-4xl mb-4">⏳</div>
+            <h3 className="text-lg font-medium mb-2 text-gray-900">Caricamento...</h3>
+            <p className="text-gray-500">Caricamento configurazione campi in corso...</p>
+          </div>
+        </div>
+      ) : (
+        <>
       {/* Header moderno con navigazione integrata */}
       <div className={`flex flex-col items-center gap-6 mb-6 ${T.cardBg} ${T.border} p-6 rounded-xl shadow-lg`}>
         {/* Navigazione date centrata con frecce grandi */}
@@ -754,6 +773,8 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
           </div>
         )}
       </Modal>
+      </>
+      )}
     </Section>
   );
 }

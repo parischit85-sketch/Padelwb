@@ -478,6 +478,15 @@ export default function Extra({
             </div>
           </div>
 
+          {/* Sezione Cloud Backup/Restore - Protetto */}
+          <CloudBackupPanel 
+            T={T} 
+            leagueId={leagueId} 
+            setState={setState}
+            cloudMsg={cloudMsg}
+            setCloudMsg={setCloudMsg}
+          />
+
           <div className={`text-xs ${T.subtext} mt-3`}>
             I dati sono salvati <b>in locale</b> (localStorage) e, se configurato, <b>anche su Firestore</b>{' '}
             nel documento <code>leagues/{leagueId}</code>.
@@ -485,5 +494,201 @@ export default function Extra({
         </>
       )}
     </Section>
+  );
+}
+
+// Componente separato per il pannello cloud protetto
+function CloudBackupPanel({ T, leagueId, setState, cloudMsg, setCloudMsg }) {
+  const [availableBackups, setAvailableBackups] = React.useState([]);
+  const [selectedBackup, setSelectedBackup] = React.useState('');
+  const [loadingBackups, setLoadingBackups] = React.useState(false);
+  const [cloudPwd, setCloudPwd] = React.useState('');
+  const [cloudUnlocked, setCloudUnlocked] = React.useState(() => {
+    try { return sessionStorage.getItem('ml-cloud-unlocked') === '1'; } catch { return false; }
+  });
+
+  const tryUnlockCloud = (e) => {
+    e?.preventDefault?.();
+    if (cloudPwd === 'ParisAdmin85') {
+      setCloudUnlocked(true);
+      try { sessionStorage.setItem('ml-cloud-unlocked', '1'); } catch {}
+    } else {
+      alert('Password cloud errata');
+    }
+  };
+
+  const lockCloudPanel = () => {
+    setCloudUnlocked(false);
+    setCloudPwd('');
+    try { sessionStorage.removeItem('ml-cloud-unlocked'); } catch {}
+  };
+
+  async function loadBackupsList() {
+    setLoadingBackups(true);
+    try {
+      const { listLeagues } = await import('@services/cloud.js');
+      const backups = await listLeagues();
+      setAvailableBackups(backups);
+      setCloudMsg(`✅ Trovati ${backups.length} backup su Firebase`);
+    } catch (e) {
+      setCloudMsg(`❌ Errore caricamento lista backup: ${e?.message || e}`);
+    } finally {
+      setLoadingBackups(false);
+    }
+  }
+
+  async function forceSave() {
+    try {
+      const { saveLeague } = await import('@services/cloud.js');
+      const state = JSON.parse(localStorage.getItem('ml-persist') || '{}');
+      await saveLeague(leagueId, { ...state, _updatedAt: Date.now() });
+      setCloudMsg(`✅ Salvato su cloud: leagues/${leagueId}`);
+      if (availableBackups.length > 0) loadBackupsList();
+    } catch (e) {
+      setCloudMsg(`❌ Errore salvataggio: ${e?.message || e}`);
+    }
+  }
+
+  async function forceLoad() {
+    const backupId = selectedBackup || leagueId;
+    try {
+      const { loadLeague } = await import('@services/cloud.js');
+      const cloud = await loadLeague(backupId);
+      if (cloud && typeof cloud === 'object') {
+        setState(cloud);
+        setCloudMsg(`✅ Caricato dal cloud: leagues/${backupId}`);
+      } else {
+        setCloudMsg('⚠️ Documento non trovato sul cloud');
+      }
+    } catch (e) {
+      setCloudMsg(`❌ Errore caricamento: ${e?.message || e}`);
+    }
+  }
+
+  return (
+    <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+      {!cloudUnlocked ? (
+        <>
+          <div className="font-semibold mb-4 flex items-center gap-2">
+            🔒 Backup Cloud (Firebase) - Accesso Limitato
+          </div>
+          <div className="text-center">
+            <div className="text-4xl mb-2">🔐</div>
+            <div className="font-semibold mb-2">Pannello Cloud Protetto</div>
+            <div className={`text-sm ${T.subtext} mb-4`}>
+              Inserisci la password amministratore per accedere ai backup Firebase
+            </div>
+          </div>
+          <form onSubmit={tryUnlockCloud} className="space-y-4">
+            <div>
+              <label className={`text-sm font-medium ${T.text} mb-2 block`}>
+                🔑 Password Cloud
+              </label>
+              <input
+                type="password"
+                value={cloudPwd}
+                onChange={(e) => setCloudPwd(e.target.value)}
+                placeholder="Password amministratore cloud"
+                className={`${T.input} w-full`}
+              />
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" className={`${T.btnPrimary} flex-1`}>
+                🔓 Sblocca Cloud
+              </button>
+            </div>
+          </form>
+        </>
+      ) : (
+        <>
+          <div className="font-semibold mb-4 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              ☁️ Backup Cloud (Firebase)
+            </span>
+            <div className="flex items-center gap-2">
+              <button 
+                type="button" 
+                className={`${T.btnGhost} text-xs`}
+                onClick={loadBackupsList}
+                disabled={loadingBackups}
+              >
+                {loadingBackups ? '⏳ Caricando...' : '🔄 Aggiorna Lista'}
+              </button>
+              <button type="button" className={`${T.btnGhost} text-xs`} onClick={lockCloudPanel}>
+                🔒 Blocca
+              </button>
+            </div>
+          </div>
+          
+          <div className="space-y-4">
+            {cloudMsg && (
+              <div className={`p-3 rounded-xl text-sm ${
+                cloudMsg.includes('❌') 
+                  ? 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-200' 
+                  : cloudMsg.includes('⚠️')
+                  ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200'
+                  : 'bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200'
+              }`}>
+                {cloudMsg}
+              </div>
+            )}
+            
+            {availableBackups.length > 0 && (
+              <div className="space-y-2">
+                <label className={`text-sm font-medium ${T.text}`}>
+                  📋 Seleziona Backup da Caricare:
+                </label>
+                <select
+                  value={selectedBackup}
+                  onChange={(e) => setSelectedBackup(e.target.value)}
+                  className={`${T.input} w-full`}
+                >
+                  <option value="">🔄 Usa League ID corrente ({leagueId})</option>
+                  {availableBackups.map((backup) => (
+                    <option key={backup.id} value={backup.id}>
+                      📁 {backup.id} - {backup.players} giocatori, {backup.matches} partite
+                      {backup.lastUpdated !== 'N/A' && ` (${backup.lastUpdated})`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            <div className="grid sm:grid-cols-3 gap-3">
+              <button 
+                type="button" 
+                className={`${T.btnSecondary} flex items-center justify-center gap-2`} 
+                onClick={loadBackupsList}
+                disabled={loadingBackups}
+              >
+                📋 {loadingBackups ? 'Caricando...' : 'Lista Backup'}
+              </button>
+              
+              <button 
+                type="button" 
+                className={`${T.btnPrimary} flex items-center justify-center gap-2`} 
+                onClick={forceSave}
+              >
+                ⬆️ Salva su Cloud
+              </button>
+              
+              <button 
+                type="button" 
+                className={`${T.btnGhost} flex items-center justify-center gap-2`} 
+                onClick={forceLoad}
+              >
+                ⬇️ Carica {selectedBackup ? 'Selezionato' : 'Corrente'}
+              </button>
+            </div>
+            
+            <div className={`text-xs ${T.subtext} space-y-1`}>
+              <div><b>League ID Corrente:</b> <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{leagueId}</code></div>
+              <div><b>Backup Selezionato:</b> <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{selectedBackup || leagueId}</code></div>
+              <div><b>Firebase Project:</b> <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">m-padelweb</code></div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 }
