@@ -27,18 +27,18 @@ return { players: Array.from(map.values()), matches: enriched };
 export function buildPodiumTimeline(players, matches, targetIds) {
 const idToName = new Map(players.map((p) => [p.id, p.name]));
 
-// Prendi solo le ultime 10 partite ordinate per data
+// Prendi solo le ultime 15 partite ordinate per data per avere più contesto
 const byDate = [...(matches || [])].sort((a, b) => new Date(a.date) - new Date(b.date));
-const last10Matches = byDate.slice(-10);
+const lastMatches = byDate.slice(-15);
 
-// Usa il rating attuale dei giocatori come punto finale
+// Usa il rating attuale PRECISO dei giocatori come punto finale di riferimento
 const currentRatings = new Map(players.map((p) => [p.id, Number(p.rating ?? DEFAULT_RATING)]));
 
-// Calcola a ritroso per ottenere i rating all'inizio delle ultime 10 partite
+// Calcola a ritroso per ottenere i rating all'inizio delle ultime partite
 const startRatings = new Map(currentRatings);
 
-// Ricostruisce i rating per ogni match delle ultime 10 partite dal più recente al più vecchio
-const reversedMatches = [...last10Matches].reverse();
+// Ricostruisce i rating per ogni match delle ultime partite dal più recente al più vecchio
+const reversedMatches = [...lastMatches].reverse();
 for (const m of reversedMatches) {
   const rr = computeFromSets(m.sets);
   const res = calcParisDelta({ 
@@ -63,15 +63,15 @@ for (const m of reversedMatches) {
 const timeline = new Map(startRatings);
 const pts = [];
 
-// Punto di partenza (prima delle ultime 10 partite)
-const start = { label: 'Inizio ultime 10' };
+// Punto di partenza (prima delle ultime partite)
+const start = { label: 'Inizio periodo' };
 for (const id of targetIds) {
   start[idToName.get(id) || id] = Math.round(timeline.get(id) ?? DEFAULT_RATING);
 }
 pts.push(start);
 
 // Calcola in avanti per ogni match
-for (const m of last10Matches) {
+for (const m of lastMatches) {
   const rr = computeFromSets(m.sets);
   const res = calcParisDelta({ 
     ratingA1: timeline.get(m.teamA[0]) ?? DEFAULT_RATING, 
@@ -102,6 +102,14 @@ for (const m of last10Matches) {
   }
   pts.push(point);
 }
+
+// AGGIUNTO: Punto finale con rating attuali PRECISI dalla classifica
+const final = { label: 'Attuale' };
+for (const id of targetIds) {
+  // Usa il rating ESATTO dalla classifica, non quello calcolato nel grafico
+  final[idToName.get(id) || id] = Math.round(currentRatings.get(id) ?? DEFAULT_RATING);
+}
+pts.push(final);
 
 return pts;
 }

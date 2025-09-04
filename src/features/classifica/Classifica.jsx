@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import Section from '@ui/Section.jsx';
 import { TrendArrow } from '@ui/TrendArrow.jsx';
 import ModernMultiLineChart from '@ui/charts/ModernMultiLineChart.jsx';
+import MobileRankingChart from '@ui/charts/MobileRankingChart.jsx';
 import ShareButtons from '@ui/ShareButtons.jsx';
 import { buildPodiumTimeline } from '@lib/ranking.js';
 
@@ -279,10 +280,22 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
   const topIds = topPlayers.map((p) => p.id);
   const topKeys = topPlayers.map((p) => p.name);
   const topRankings = topPlayers.map((p, index) => ({ name: p.name, position: index + 1 }));
-  const chartData = useMemo(
-    () => buildPodiumTimeline(players, matches, topIds),
-    [players, matches, topIds]
-  );
+  
+  // Usa i rating attuali della classifica per sincronizzare con il grafico
+  const chartData = useMemo(() => {
+    const timeline = buildPodiumTimeline(players, matches, topIds);
+    
+    // Verifica che l'ultimo punto del grafico corrisponda ai rating attuali
+    if (timeline.length > 0) {
+      const lastPoint = timeline[timeline.length - 1];
+      topPlayers.forEach(player => {
+        // Sincronizza l'ultimo valore del grafico con il rating attuale della classifica
+        lastPoint[player.name] = Math.round(player.rating);
+      });
+    }
+    
+    return timeline;
+  }, [players, matches, topIds, topPlayers]);
 
   const buildCaption = () => {
     const lines = [
@@ -381,8 +394,8 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
             )}
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="font-medium">Andamento del ranking</div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 md:mb-4 gap-2 md:gap-0">
+            <div className="font-medium text-sm md:text-base">Andamento del ranking</div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500">Mostra:</span>
               <select
@@ -396,10 +409,11 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               </select>
             </div>
           </div>
-          <ModernMultiLineChart
-            data={chartData}
+          {/* Usa il nuovo grafico mobile-ottimizzato per tutte le piattaforme */}
+          <MobileRankingChart 
+            data={chartData} 
             seriesKeys={topKeys}
-            chartId="classifica"
+            chartId="classifica-universal"
             title={`Evoluzione del Top ${selectedTopCount}`}
             selectedCount={selectedTopCount}
             playerRankings={topRankings}
@@ -415,29 +429,37 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               <h3 className="text-lg font-semibold">Migliori Coppie</h3>
             </div>
 
-            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-              <p className="text-xs text-amber-800 dark:text-amber-200">
-                Coppie ordinate per percentuale di vittorie (solo coppie con ≥ 3 partite giocate
-                insieme)
-              </p>
+            <div className="mb-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              <div className="flex items-start gap-2">
+                <span className="text-amber-500 text-xs">ℹ️</span>
+                <div>
+                  <p className="text-xs font-medium text-amber-800 dark:text-amber-200 mb-1">
+                    Come funziona:
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-300">
+                    Ordinate per % vittorie. Solo coppie con ≥3 partite.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="block md:hidden space-y-3">
+            {/* Mobile layout - ultra compact single line */}
+            <div className="block md:hidden space-y-1">
               {couplesStats.slice(0, 8).map((couple, idx) => (
                 <div
                   key={couple.key}
-                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                  className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-500">#{idx + 1}</span>
-                    <span className="font-semibold text-lg">{couple.winRate.toFixed(0)}%</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-400 w-6">#{idx + 1}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {couple.players[0].split(' ').pop()} & {couple.players[1].split(' ').pop()}
+                    </span>
                   </div>
-                  <div className="font-medium text-sm mb-1">
-                    {couple.players[0]} & {couple.players[1]}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    <span className="text-green-600 dark:text-green-400">{couple.wins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{couple.losses}</span> sconfitte
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-600 dark:text-green-400">{couple.wins}V</span>
+                    <span className="text-red-600 dark:text-red-400">{couple.losses}S</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-300 text-sm">{couple.winRate.toFixed(0)}%</span>
                   </div>
                 </div>
               ))}
@@ -483,33 +505,40 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               <h3 className="text-lg font-semibold">Classifica Efficienza</h3>
             </div>
 
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-xs text-blue-800 dark:text-blue-200">
-                Combinazione di % vittorie (70%) e % game vinti (30%)
-              </p>
+            <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-start gap-2">
+                <span className="text-blue-500 text-xs">⚡</span>
+                <div>
+                  <p className="text-xs font-medium text-blue-800 dark:text-blue-200 mb-1">
+                    Formula:
+                  </p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
+                    % vittorie (70%) + % game vinti (30%).
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="block md:hidden space-y-3">
+            {/* Mobile layout - ultra compact single line */}
+            <div className="block md:hidden space-y-1">
               {efficiencyStats.slice(0, 8).map((player, idx) => (
                 <div
                   key={player.id}
-                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                  className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-500">#{idx + 1}</span>
-                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
-                      {player.efficiency.toFixed(1)}%
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 w-6">#{idx + 1}</span>
+                    <button
+                      className={T.link + ' text-sm font-medium text-gray-900 dark:text-gray-100'}
+                      onClick={() => onOpenStats(player.id)}
+                    >
+                      {player.name}
+                    </button>
                   </div>
-                  <button
-                    className={T.link + ' text-sm font-medium mb-1 block'}
-                    onClick={() => onOpenStats(player.id)}
-                  >
-                    {player.name}
-                  </button>
-                  <div className="text-xs text-gray-500">
-                    <span className="text-green-600 dark:text-green-400">{player.wins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{player.losses}</span> sconfitte
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-600 dark:text-green-400">{player.wins}V</span>
+                    <span className="text-red-600 dark:text-red-400">{player.losses}S</span>
+                    <span className="font-bold text-blue-700 dark:text-blue-300 text-sm">{player.efficiency.toFixed(1)}%</span>
                   </div>
                 </div>
               ))}
@@ -562,39 +591,43 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               <h3 className="text-lg font-semibold">Streak Vittorie</h3>
             </div>
 
-            <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-              <p className="text-xs text-green-800 dark:text-green-200">
-                Migliori serie consecutive di vittorie
-              </p>
+            <div className="mb-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-start gap-2">
+                <span className="text-green-500 text-xs">🔥</span>
+                <div>
+                  <p className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                    Streak vittorie:
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    Migliore serie consecutiva. 🔥 = serie attiva.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="block md:hidden space-y-3">
+            {/* Mobile layout - ultra compact single line */}
+            <div className="block md:hidden space-y-1">
               {streakStats.positive.slice(0, 8).map((player, idx) => (
                 <div
                   key={player.id}
-                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                  className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-500">#{idx + 1}</span>
-                    <span className="font-bold text-lg text-green-600 dark:text-green-400">
-                      {player.bestWinStreak}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-green-600 dark:text-green-400 w-6">#{idx + 1}</span>
+                    <button
+                      className={T.link + ' text-sm font-medium text-gray-900 dark:text-gray-100'}
+                      onClick={() => onOpenStats(player.id)}
+                    >
+                      {player.name}
+                    </button>
                   </div>
-                  <button
-                    className={T.link + ' text-sm font-medium mb-1 block'}
-                    onClick={() => onOpenStats(player.id)}
-                  >
-                    {player.name}
-                  </button>
-                  <div className="text-xs">
+                  <div className="flex items-center gap-2 text-xs">
                     {player.streakType === 'win' ? (
-                      <span className="text-green-600 dark:text-green-400 font-semibold">
-                        🔥 Serie attuale: +{player.currentStreak}
-                      </span>
+                      <span className="text-green-600 dark:text-green-400">🔥{player.currentStreak}</span>
                     ) : (
-                      <span className="text-gray-500">Serie non attiva</span>
+                      <span className="text-gray-400">-</span>
                     )}
+                    <span className="font-bold text-green-700 dark:text-green-300 text-sm">{player.bestWinStreak}</span>
                   </div>
                 </div>
               ))}
@@ -652,33 +685,40 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               <h3 className="text-lg font-semibold">Ingiocabili</h3>
             </div>
 
-            <div className="mb-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-              <p className="text-xs text-purple-800 dark:text-purple-200">
-                Minor rapporto sconfitte/partite giocate
-              </p>
+            <div className="mb-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="flex items-start gap-2">
+                <span className="text-purple-500 text-xs">🛡️</span>
+                <div>
+                  <p className="text-xs font-medium text-purple-800 dark:text-purple-200 mb-1">
+                    Ingiocabili:
+                  </p>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                    Minor % sconfitte. Più basso = più difficile da battere.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Mobile cards */}
-            <div className="block md:hidden space-y-3">
+            {/* Mobile layout - ultra compact single line */}
+            <div className="block md:hidden space-y-1">
               {streakStats.ingiocabili.slice(0, 8).map((player, idx) => (
                 <div
                   key={player.id}
-                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                  className="flex items-center justify-between py-1 border-b border-gray-100 dark:border-gray-800 last:border-b-0"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-bold text-gray-500">#{idx + 1}</span>
-                    <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
-                      {player.lossRatio.toFixed(1)}%
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-purple-600 dark:text-purple-400 w-6">#{idx + 1}</span>
+                    <button
+                      className={T.link + ' text-sm font-medium text-gray-900 dark:text-gray-100'}
+                      onClick={() => onOpenStats(player.id)}
+                    >
+                      {player.name}
+                    </button>
                   </div>
-                  <button
-                    className={T.link + ' text-sm font-medium mb-1 block'}
-                    onClick={() => onOpenStats(player.id)}
-                  >
-                    {player.name}
-                  </button>
-                  <div className="text-xs text-gray-500">
-                    <span className="text-green-600 dark:text-green-400">{player.totalWins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{player.totalLosses}</span> sconfitte
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-green-600 dark:text-green-400">{player.totalWins}V</span>
+                    <span className="text-red-600 dark:text-red-400">{player.totalLosses}S</span>
+                    <span className="font-bold text-purple-700 dark:text-purple-300 text-sm">{player.lossRatio.toFixed(1)}%</span>
                   </div>
                 </div>
               ))}

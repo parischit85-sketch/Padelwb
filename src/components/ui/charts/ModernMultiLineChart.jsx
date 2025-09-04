@@ -60,24 +60,25 @@ export default function ModernMultiLineChart({
   
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const isMobile = window.innerWidth < 768;
       return (
-        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-4 min-w-48">
-          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">{label}</p>
-          <div className="space-y-2">
+        <div className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl ${isMobile ? 'p-2 min-w-36' : 'p-4 min-w-48'}`}>
+          <p className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-900 dark:text-gray-100 ${isMobile ? 'mb-1' : 'mb-3'}`}>{label}</p>
+          <div className={isMobile ? 'space-y-1' : 'space-y-2'}>
             {payload
               .sort((a, b) => b.value - a.value) // Ordina per valore decrescente
               .map((entry, index) => (
                 <div key={index} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <div 
-                      className="w-3 h-3 rounded-full" 
+                      className={`${isMobile ? 'w-2 h-2' : 'w-3 h-3'} rounded-full`} 
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {entry.dataKey}
+                    <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-medium text-gray-700 dark:text-gray-300 ${isMobile ? 'truncate max-w-16' : ''}`}>
+                      {isMobile ? entry.dataKey.split(' ')[0] : entry.dataKey}
                     </span>
                   </div>
-                  <span className="text-sm font-bold" style={{ color: entry.color }}>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold`} style={{ color: entry.color }}>
                     {entry.value}
                   </span>
                 </div>
@@ -100,22 +101,22 @@ export default function ModernMultiLineChart({
     });
 
     return (
-      <div className="flex justify-center gap-3 mt-4 flex-wrap">
+      <div className="flex justify-center gap-2 md:gap-3 mt-3 md:mt-4 flex-wrap">
         {sortedPayload.map((entry, index) => {
           // Trova la posizione in classifica per questo giocatore
           const playerRanking = playerRankings.find(p => p.name === entry.value);
           const position = playerRanking ? playerRanking.position : index + 1;
           
           return (
-            <div key={entry.value} className="flex items-center gap-2">
+            <div key={entry.value} className="flex items-center gap-1.5 md:gap-2">
               <div 
-                className="w-4 h-4 rounded-full border-2 border-white shadow-sm" 
+                className="w-3 h-3 md:w-4 md:h-4 rounded-full border-2 border-white shadow-sm" 
                 style={{ backgroundColor: entry.color }}
               />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-20 md:max-w-none">
                 {entry.value}
               </span>
-              <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+              <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1 md:px-1.5 py-0.5 rounded">
                 {position}°
               </span>
             </div>
@@ -126,11 +127,16 @@ export default function ModernMultiLineChart({
   };
 
   return (
-    <div className="h-72 sm:h-80">
+    <div className="h-64 md:h-72 lg:h-80">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart 
           data={last10Data} 
-          margin={{ left: 10, right: 10, top: 20, bottom: 60 }}
+          margin={{ 
+            left: 5, 
+            right: 5, 
+            top: 10, 
+            bottom: window.innerWidth < 768 ? 40 : 60 
+          }}
         >
           <defs>
             {seriesKeys.map((key, index) => (
@@ -153,23 +159,27 @@ export default function ModernMultiLineChart({
           
           <XAxis 
             dataKey="label" 
-            tick={{ fontSize: 10, fill: '#6b7280' }}
+            tick={{ fontSize: window.innerWidth < 768 ? 9 : 10, fill: '#6b7280' }}
             axisLine={false}
             tickLine={false}
             interval="preserveStartEnd"
+            angle={window.innerWidth < 768 ? -45 : 0}
+            textAnchor={window.innerWidth < 768 ? 'end' : 'middle'}
+            height={window.innerWidth < 768 ? 50 : 30}
           />
           
           <YAxis 
-            tick={{ fontSize: 11, fill: '#6b7280' }}
+            tick={{ fontSize: window.innerWidth < 768 ? 9 : 11, fill: '#6b7280' }}
             axisLine={false}
             tickLine={false}
-            width={50}
+            width={window.innerWidth < 768 ? 35 : 50}
             domain={yAxisDomain}
             scale="linear"
           />
           
           <Tooltip content={<CustomTooltip />} />
-          <Legend content={<CustomLegend />} />
+          {/* Nascondi legenda su schermi molto piccoli per risparmiare spazio */}
+          {window.innerWidth >= 640 && <Legend content={<CustomLegend />} />}
           
           {seriesKeys.map((key, index) => (
             <Line 
@@ -177,18 +187,18 @@ export default function ModernMultiLineChart({
               type="monotone" 
               dataKey={key} 
               stroke={PODIUM_COLORS[index] || `hsl(${index * 36}, 70%, 50%)`}
-              strokeWidth={index < 3 ? 4 : index < 5 ? 3 : 2}
+              strokeWidth={window.innerWidth < 768 ? (index < 3 ? 3 : 2) : (index < 3 ? 4 : index < 5 ? 3 : 2)}
               dot={{ 
-                r: index < 3 ? 4 : index < 5 ? 3 : 2, 
+                r: window.innerWidth < 768 ? (index < 3 ? 3 : 2) : (index < 3 ? 4 : index < 5 ? 3 : 2), 
                 fill: PODIUM_COLORS[index] || `hsl(${index * 36}, 70%, 50%)`,
                 stroke: 'white',
-                strokeWidth: 2
+                strokeWidth: window.innerWidth < 768 ? 1 : 2
               }}
               activeDot={{ 
-                r: index < 3 ? 7 : index < 5 ? 6 : 5, 
+                r: window.innerWidth < 768 ? (index < 3 ? 5 : 4) : (index < 3 ? 7 : index < 5 ? 6 : 5), 
                 fill: PODIUM_COLORS[index] || `hsl(${index * 36}, 70%, 50%)`,
                 stroke: 'white',
-                strokeWidth: 3,
+                strokeWidth: window.innerWidth < 768 ? 2 : 3,
                 filter: `url(#glow-${chartId}-${index})`,
                 className: 'drop-shadow-lg'
               }}
@@ -198,12 +208,39 @@ export default function ModernMultiLineChart({
         </LineChart>
       </ResponsiveContainer>
       
-      <div className="flex justify-between items-center mt-3 px-2">
+      <div className="flex justify-between items-center mt-2 md:mt-3 px-1 md:px-2">
         <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{title}</span>
         <span className="text-xs text-gray-500">
-          {last10Data.length} periodi di gioco
+          {last10Data.length} periodi
         </span>
       </div>
+      
+      {/* Legenda compatta per schermi molto piccoli */}
+      {window.innerWidth < 640 && (
+        <div className="mt-2 px-1">
+          <div className="flex flex-wrap gap-1">
+            {seriesKeys.slice(0, 3).map((key, index) => {
+              const playerRanking = playerRankings.find(p => p.name === key);
+              const position = playerRanking ? playerRanking.position : index + 1;
+              return (
+                <div key={key} className="flex items-center gap-1 text-xs">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: PODIUM_COLORS[index] }}
+                  />
+                  <span className="font-medium text-gray-700 dark:text-gray-300 truncate max-w-12">
+                    {key.split(' ')[0]}
+                  </span>
+                  <span className="text-gray-500">({position}°)</span>
+                </div>
+              );
+            })}
+            {seriesKeys.length > 3 && (
+              <span className="text-xs text-gray-400">+{seriesKeys.length - 3}</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
