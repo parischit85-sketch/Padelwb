@@ -314,15 +314,15 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
     >
       <div ref={classificaRef} className="space-y-8">
         {/* Ranking RPA Card */}
-        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-6`}>
-          <div className="flex items-center justify-between mb-6">
+        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 md:p-6`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
             <div className="flex items-center gap-3">
               <span className="text-2xl">🏆</span>
               <h3 className="text-lg font-semibold">Ranking RPA</h3>
             </div>
             <button
               onClick={() => setShowAllPlayers(!showAllPlayers)}
-              className={`px-3 py-1 text-sm rounded-lg border transition-colors ${
+              className={`px-3 py-1 text-sm rounded-lg border transition-colors self-start sm:self-auto ${
                 showAllPlayers
                   ? 'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300'
                   : 'bg-gray-50 border-gray-200 text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -332,41 +332,82 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
             </button>
           </div>
 
-          <div className="overflow-x-auto mb-6">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>
-                  <th className="py-2 pr-3">#</th>
-                  <th className="py-2 pr-3">Giocatore</th>
-                  <th className="py-2 pr-3">Ranking</th>
-                  <th className="py-2 pr-3">Vittorie</th>
-                  <th className="py-2 pr-3">Sconfitte</th>
-                  <th className="py-2 pr-3">% Vittorie</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(showAllPlayers ? rows : rows.slice(0, 10)).map((p, idx) => (
-                  <tr
-                    key={p.id}
-                    className="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5"
-                  >
-                    <td className="py-2 pr-3">{idx + 1}</td>
-                    <td className="py-2 pr-3">
-                      <button className={T.link} onClick={() => onOpenStats(p.id)}>
+          {/* Mobile-first table with responsive design */}
+          <div className="mb-6">
+            {/* Mobile cards (hidden on larger screens) */}
+            <div className="block md:hidden space-y-3">
+              {(showAllPlayers ? rows : rows.slice(0, 10)).map((p, idx) => (
+                <div
+                  key={p.id}
+                  className={`rounded-lg ${T.cardBg} border border-gray-200 dark:border-gray-700 p-4`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-lg text-gray-500">#{idx + 1}</span>
+                      <button className={T.link + ' font-semibold'} onClick={() => onOpenStats(p.id)}>
                         {p.name}
                       </button>
-                    </td>
-                    <td className="py-2 pr-3 font-semibold">
-                      {p.rating.toFixed(2)}
+                    </div>
+                    <div className="text-right">
+                      <div className="font-bold text-lg">{p.rating.toFixed(2)}</div>
                       <TrendArrow total={p.trend5Total} pos={p.trend5Pos} neg={p.trend5Neg} />
-                    </td>
-                    <td className="py-2 pr-3">{p.wins || 0}</td>
-                    <td className="py-2 pr-3">{p.losses || 0}</td>
-                    <td className="py-2 pr-3">{p.winRate.toFixed(0)}%</td>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-green-600 dark:text-green-400 font-semibold">{p.wins || 0}</div>
+                      <div className="text-xs text-gray-500">Vittorie</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-red-600 dark:text-red-400 font-semibold">{p.losses || 0}</div>
+                      <div className="text-xs text-gray-500">Sconfitte</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-semibold">{p.winRate.toFixed(0)}%</div>
+                      <div className="text-xs text-gray-500">% Vittorie</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table (hidden on mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>
+                    <th className="py-2 pr-3">#</th>
+                    <th className="py-2 pr-3">Giocatore</th>
+                    <th className="py-2 pr-3">Ranking</th>
+                    <th className="py-2 pr-3">Vittorie</th>
+                    <th className="py-2 pr-3">Sconfitte</th>
+                    <th className="py-2 pr-3">% Vittorie</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(showAllPlayers ? rows : rows.slice(0, 10)).map((p, idx) => (
+                    <tr
+                      key={p.id}
+                      className="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5"
+                    >
+                      <td className="py-2 pr-3">{idx + 1}</td>
+                      <td className="py-2 pr-3">
+                        <button className={T.link} onClick={() => onOpenStats(p.id)}>
+                          {p.name}
+                        </button>
+                      </td>
+                      <td className="py-2 pr-3 font-semibold">
+                        {p.rating.toFixed(2)}
+                        <TrendArrow total={p.trend5Total} pos={p.trend5Pos} neg={p.trend5Neg} />
+                      </td>
+                      <td className="py-2 pr-3">{p.wins || 0}</td>
+                      <td className="py-2 pr-3">{p.losses || 0}</td>
+                      <td className="py-2 pr-3">{p.winRate.toFixed(0)}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {/* Indicatore se ci sono più giocatori */}
             {!showAllPlayers && rows.length > 10 && (
@@ -406,11 +447,11 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
           />
         </div>
 
-        {/* Grid per le altre classifiche */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Grid per le altre classifiche - mobile first */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 md:gap-8">
           {/* Coppie Card */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-6`}>
-            <div className="flex items-center gap-3 mb-6">
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 md:p-6`}>
+            <div className="flex items-center gap-3 mb-4 md:mb-6">
               <span className="text-2xl">👥</span>
               <h3 className="text-lg font-semibold">Migliori Coppie</h3>
             </div>
@@ -422,7 +463,29 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="block md:hidden space-y-3">
+              {couplesStats.slice(0, 8).map((couple, idx) => (
+                <div
+                  key={couple.key}
+                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-500">#{idx + 1}</span>
+                    <span className="font-semibold text-lg">{couple.winRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="font-medium text-sm mb-1">
+                    {couple.players[0]} & {couple.players[1]}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    <span className="text-green-600 dark:text-green-400">{couple.wins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{couple.losses}</span> sconfitte
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>
@@ -455,8 +518,8 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
           </div>
 
           {/* Efficienza Card */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-6`}>
-            <div className="flex items-center gap-3 mb-6">
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 md:p-6`}>
+            <div className="flex items-center gap-3 mb-4 md:mb-6">
               <span className="text-2xl">⚡</span>
               <h3 className="text-lg font-semibold">Classifica Efficienza</h3>
             </div>
@@ -467,7 +530,34 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="block md:hidden space-y-3">
+              {efficiencyStats.slice(0, 8).map((player, idx) => (
+                <div
+                  key={player.id}
+                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-500">#{idx + 1}</span>
+                    <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                      {player.efficiency.toFixed(1)}%
+                    </span>
+                  </div>
+                  <button
+                    className={T.link + ' text-sm font-medium mb-1 block'}
+                    onClick={() => onOpenStats(player.id)}
+                  >
+                    {player.name}
+                  </button>
+                  <div className="text-xs text-gray-500">
+                    <span className="text-green-600 dark:text-green-400">{player.wins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{player.losses}</span> sconfitte
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>
@@ -507,8 +597,8 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
           </div>
 
           {/* Streak Positive Card */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-6`}>
-            <div className="flex items-center gap-3 mb-6">
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 md:p-6`}>
+            <div className="flex items-center gap-3 mb-4 md:mb-6">
               <span className="text-2xl">🔥</span>
               <h3 className="text-lg font-semibold">Streak Vittorie</h3>
             </div>
@@ -519,7 +609,40 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="block md:hidden space-y-3">
+              {streakStats.positive.slice(0, 8).map((player, idx) => (
+                <div
+                  key={player.id}
+                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-500">#{idx + 1}</span>
+                    <span className="font-bold text-lg text-green-600 dark:text-green-400">
+                      {player.bestWinStreak}
+                    </span>
+                  </div>
+                  <button
+                    className={T.link + ' text-sm font-medium mb-1 block'}
+                    onClick={() => onOpenStats(player.id)}
+                  >
+                    {player.name}
+                  </button>
+                  <div className="text-xs">
+                    {player.streakType === 'win' ? (
+                      <span className="text-green-600 dark:text-green-400 font-semibold">
+                        🔥 Serie attuale: +{player.currentStreak}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500">Serie non attiva</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>
@@ -564,8 +687,8 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
           </div>
 
           {/* Ingiocabili Card */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-6`}>
-            <div className="flex items-center gap-3 mb-6">
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 md:p-6`}>
+            <div className="flex items-center gap-3 mb-4 md:mb-6">
               <span className="text-2xl">🛡️</span>
               <h3 className="text-lg font-semibold">Ingiocabili</h3>
             </div>
@@ -576,7 +699,34 @@ export default function Classifica({ players, matches, onOpenStats, T }) {
               </p>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="block md:hidden space-y-3">
+              {streakStats.ingiocabili.slice(0, 8).map((player, idx) => (
+                <div
+                  key={player.id}
+                  className={`rounded-lg border border-gray-200 dark:border-gray-700 p-3`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-gray-500">#{idx + 1}</span>
+                    <span className="font-bold text-lg text-purple-600 dark:text-purple-400">
+                      {player.lossRatio.toFixed(1)}%
+                    </span>
+                  </div>
+                  <button
+                    className={T.link + ' text-sm font-medium mb-1 block'}
+                    onClick={() => onOpenStats(player.id)}
+                  >
+                    {player.name}
+                  </button>
+                  <div className="text-xs text-gray-500">
+                    <span className="text-green-600 dark:text-green-400">{player.totalWins}</span> vittorie, <span className="text-red-600 dark:text-red-400">{player.totalLosses}</span> sconfitte
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className={`text-left border-b ${T.border} ${T.tableHeadText}`}>

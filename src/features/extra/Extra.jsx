@@ -185,174 +185,229 @@ export default function Extra({
 
   return (
     <Section title="Extra – Impostazioni" T={T}>
-      {/* La gestione della modalità circolo è visibile SOLO se il pannello è sbloccato */}
+      {/* Modalità Circolo */}
       {unlocked ? (
-        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-3 mb-4`}>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-              <div className="font-medium">Modalità Circolo</div>
-              <div className={`text-sm ${T.subtext}`}>
-                {clubMode
-                  ? 'Attiva — le tab amministrative (Giocatori, Crea Partita, Gestione Campi, Crea Tornei) sono visibili.'
-                  : 'Disattiva — solo Classifica e Statistiche sono visibili agli utenti.'}
+        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🎛️</span>
+              <div>
+                <div className="font-semibold text-lg">Modalità Circolo</div>
+                <div className={`text-sm ${T.subtext}`}>
+                  {clubMode
+                    ? '✅ Attiva — le tab amministrative sono visibili'
+                    : '❌ Disattiva — solo Classifica e Statistiche sono visibili'}
+                </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-3">
               {!clubMode ? (
-                <button type="button" className={T.btnPrimary} onClick={() => setClubMode(true)}>
-                  Attiva
+                <button type="button" className={`${T.btnPrimary} flex-1 sm:flex-none`} onClick={() => setClubMode(true)}>
+                  🚀 Attiva Modalità Circolo
                 </button>
               ) : (
                 <button
                   type="button"
-                  className={T.btnGhost}
+                  className={`${T.btnGhost} flex-1 sm:flex-none`}
                   onClick={() => setClubMode(false)}
                 >
-                  Disattiva
+                  🔒 Disattiva Modalità Circolo
                 </button>
               )}
             </div>
           </div>
         </div>
       ) : (
-        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-3 mb-4`}>
-          <div className="font-medium mb-1">Modalità Circolo</div>
-          <div className={`text-sm ${T.subtext}`}>
-            Sblocca il pannello per abilitare o disabilitare la Modalità Circolo.
+        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+          <div className="text-center">
+            <div className="text-4xl mb-2">🔐</div>
+            <div className="font-semibold mb-2">Modalità Circolo</div>
+            <div className={`text-sm ${T.subtext}`}>
+              Sblocca il pannello per gestire la Modalità Circolo e altre impostazioni avanzate.
+            </div>
           </div>
         </div>
       )}
 
-      {/* Pannello sblocco + azioni cloud */}
+      {/* Pannello sblocco */}
       {!unlocked ? (
-        <form
-          onSubmit={tryUnlock}
-          className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end mb-3"
-        >
-          <div className="flex-1 min-w-[200px]">
-            <label className={`text-xs ${T.subtext}`}>Password pannello (Paris2025)</label>
-            <input
-              type="password"
-              value={pwd}
-              onChange={(e) => setPwd(e.target.value)}
-              placeholder="Inserisci password"
-              className={`${T.input} w-full`}
-            />
+        <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+          <form onSubmit={tryUnlock} className="space-y-4">
+            <div>
+              <label className={`text-sm font-medium ${T.text} mb-2 block`}>
+                🔑 Password Amministratore
+              </label>
+              <input
+                type="password"
+                value={pwd}
+                onChange={(e) => setPwd(e.target.value)}
+                placeholder="Inserisci password"
+                className={`${T.input} w-full`}
+              />
+              <div className={`text-xs ${T.subtext} mt-1`}>
+                Contatta l'amministratore per la password
+              </div>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button type="submit" className={`${T.btnPrimary} flex-1`}>
+                🔓 Sblocca Pannello
+              </button>
+            </div>
+          </form>
+          
+          {/* Cloud actions sempre disponibili */}
+          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="font-medium mb-3 flex items-center gap-2">
+              ☁️ Azioni Cloud (sempre disponibili)
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button type="button" className={`${T.btnGhost} w-full`} onClick={forceSave}>
+                💾 Forza Salva su Cloud
+              </button>
+              <button type="button" className={`${T.btnGhost} w-full`} onClick={forceLoad}>
+                📥 Forza Carica da Cloud
+              </button>
+            </div>
           </div>
-          <button type="submit" className={T.btnPrimary}>
-            Sblocca pannello
-          </button>
-          <button type="button" className={T.btnGhost} onClick={forceSave}>
-            Forza salva su cloud
-          </button>
-          <button type="button" className={T.btnGhost} onClick={forceLoad}>
-            Forza carica da cloud
-          </button>
-        </form>
-      ) : (
-        <div className="mb-3 flex gap-2">
-          <button type="button" className={T.btnGhost} onClick={lockPanel}>
-            Blocca pannello
-          </button>
-          <button type="button" className={T.btnGhost} onClick={forceSave}>
-            Forza salva su cloud
-          </button>
-          <button type="button" className={T.btnGhost} onClick={forceLoad}>
-            Forza carica da cloud
-          </button>
-        </div>
-      )}
-
-      {!unlocked ? (
-        <div className={`text-xs ${T.subtext}`}>
-          Sblocca per accedere a Backup/Import, sincronizzazione Cloud, gestione campi e parametri
-          prenotazioni.
         </div>
       ) : (
         <>
-          {/* Lega + cloud */}
-          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2 mb-3">
-            <span className="text-sm">Lega:</span>
-            <input
-              className={`${T.input} w-full sm:w-64`}
-              value={leagueId}
-              placeholder="lega-andrea-2025"
-              onChange={(e) => setLeagueId(e.target.value)}
-            />
-            <div className="flex gap-2">
-              <button type="button" className={T.btnGhost} onClick={forceSave}>
-                Forza salva su cloud
-              </button>
-              <button type="button" className={T.btnGhost} onClick={forceLoad}>
-                Forza carica da cloud
+          {/* Pannello sbloccato */}
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">✅</span>
+                <div>
+                  <div className="font-semibold">Pannello Sbloccato</div>
+                  <div className={`text-sm ${T.subtext}`}>Accesso completo alle impostazioni</div>
+                </div>
+              </div>
+              <button type="button" className={`${T.btnGhost} w-full sm:w-auto`} onClick={lockPanel}>
+                🔒 Blocca Pannello
               </button>
             </div>
           </div>
-          {cloudMsg && <div className={`text-xs ${T.subtext} mb-4`}>{cloudMsg}</div>}
 
-          {/* Backup / export */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            <button type="button" className={T.btnPrimary} onClick={exportJSON}>
-              Backup JSON
-            </button>
-            <label className={`${T.btnGhost} cursor-pointer`}>
-              Import JSON
-              <input
-                type="file"
-                className="hidden"
-                accept="application/json"
-                onChange={(e) => e.target.files?.[0] && importJSON(e.target.files[0])}
-              />
-            </label>
-            <button type="button" className={T.btnGhost} onClick={exportCSVClassifica}>
-              Export Classifica CSV
-            </button>
-            <button type="button" className={T.btnGhost} onClick={exportCSVMatches}>
-              Export Partite CSV
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium ring-1 ring-rose-500/40 text-rose-500 hover:bg-rose-500/10 transition"
-              onClick={resetAll}
-            >
-              Rigenera simulazione
-            </button>
-          </div>
-
-          {/* Campi (senza promo) */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-3 mb-4`}>
-            <div className="font-medium mb-2">Campi</div>
-            <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-end mb-3">
-              <div className="flex-1">
-                <label className={`text-xs ${T.subtext}`}>Nuovo campo</label>
+          {/* Cloud e Lega */}
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+            <div className="font-semibold mb-4 flex items-center gap-2">
+              ☁️ Sincronizzazione Cloud
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className={`text-sm font-medium ${T.text} mb-2 block`}>
+                  ID Lega
+                </label>
                 <input
-                  value={newCourt}
-                  onChange={(e) => setNewCourt(e.target.value)}
-                  className={T.input}
-                  placeholder="Es. Campo 4 (Coperto)"
+                  className={`${T.input} w-full`}
+                  value={leagueId}
+                  placeholder="lega-andrea-2025"
+                  onChange={(e) => setLeagueId(e.target.value)}
                 />
               </div>
-              <button type="button" className={T.btnGhost} onClick={addCourt}>
-                Aggiungi
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button type="button" className={`${T.btnGhost} w-full`} onClick={forceSave}>
+                  💾 Salva su Cloud
+                </button>
+                <button type="button" className={`${T.btnGhost} w-full`} onClick={forceLoad}>
+                  📥 Carica da Cloud
+                </button>
+              </div>
+              
+              {cloudMsg && (
+                <div className={`text-sm p-3 rounded-lg ${
+                  cloudMsg.includes('✅') 
+                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
+                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                }`}>
+                  {cloudMsg}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Backup e Export */}
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+            <div className="font-semibold mb-4 flex items-center gap-2">
+              💾 Backup e Export
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <button type="button" className={`${T.btnPrimary} w-full`} onClick={exportJSON}>
+                📁 Backup JSON
+              </button>
+              <label className={`${T.btnGhost} cursor-pointer w-full flex items-center justify-center`}>
+                📤 Import JSON
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="application/json"
+                  onChange={(e) => e.target.files?.[0] && importJSON(e.target.files[0])}
+                />
+              </label>
+              <button type="button" className={`${T.btnGhost} w-full`} onClick={exportCSVClassifica}>
+                📊 Export Classifica
+              </button>
+              <button type="button" className={`${T.btnGhost} w-full`} onClick={exportCSVMatches}>
+                🎾 Export Partite
+              </button>
+              <button
+                type="button"
+                className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium ring-1 ring-rose-500/40 text-rose-500 hover:bg-rose-500/10 transition"
+                onClick={resetAll}
+              >
+                🔄 Rigenera Demo
               </button>
             </div>
-            <div className="grid md:grid-cols-2 gap-2">
-              {(state.courts || []).map((c) => (
-                <div key={c.id} className={`rounded-xl ${T.cardBg} ${T.border} p-3`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-medium truncate">{c.name}</div>
-                    </div>
-                    <button
-                      type="button"
-                      className="text-rose-500 text-sm hover:underline shrink-0"
-                      onClick={() => removeCourt(c.id)}
-                    >
-                      Rimuovi
-                    </button>
-                  </div>
+          </div>
+
+          {/* Gestione Campi */}
+          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
+            <div className="font-semibold mb-4 flex items-center gap-2">
+              🏟️ Gestione Campi
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="flex-1">
+                  <input
+                    value={newCourt}
+                    onChange={(e) => setNewCourt(e.target.value)}
+                    className={`${T.input} w-full`}
+                    placeholder="Es. Campo 4 (Coperto)"
+                  />
                 </div>
-              ))}
+                <button type="button" className={`${T.btnGhost} w-full sm:w-auto`} onClick={addCourt}>
+                  ➕ Aggiungi Campo
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {(state.courts || []).length === 0 ? (
+                  <div className={`text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl`}>
+                    <div className="text-3xl mb-2">🏟️</div>
+                    <div className={`text-sm ${T.subtext}`}>Nessun campo configurato</div>
+                  </div>
+                ) : (
+                  (state.courts || []).map((c) => (
+                    <div key={c.id} className={`rounded-xl border border-gray-200 dark:border-gray-600 p-3 flex items-center justify-between`}>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xl">🎾</span>
+                        <div className="font-medium">{c.name}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1 rounded text-sm transition-colors"
+                        onClick={() => removeCourt(c.id)}
+                      >
+                        🗑️ Rimuovi
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 

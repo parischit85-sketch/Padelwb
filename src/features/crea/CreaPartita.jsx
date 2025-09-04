@@ -94,81 +94,147 @@ export default function CreaPartita({ state, setState, playersById, onShowFormul
   return (
     <>
       <Section title="Crea Partita" T={T}>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="font-medium flex items-center gap-2">
-              Team A <span className={`text-xs ${T.subtext}`}>Ranking coppia: <b>{pairAText}</b></span>
+        {/* Team selection - mobile optimized */}
+        <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-6">
+          <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+            <div className="font-medium flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+              <span className="flex items-center gap-2">
+                🅰️ <span>Team A</span>
+              </span>
+              <span className={`text-xs ${T.subtext} bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded-full`}>
+                Ranking: <b>{pairAText}</b>
+              </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
               <PlayerSelect T={T} players={playersAlpha} value={a1} onChange={setA1} disabledIds={new Set([a2, b1, b2].filter(Boolean))} />
               <PlayerSelect T={T} players={playersAlpha} value={a2} onChange={setA2} disabledIds={new Set([a1, b1, b2].filter(Boolean))} />
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="font-medium flex items-center gap-2">
-              Team B <span className={`text-xs ${T.subtext}`}>Ranking coppia: <b>{pairBText}</b></span>
+
+          <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+            <div className="font-medium flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+              <span className="flex items-center gap-2">
+                🅱️ <span>Team B</span>
+              </span>
+              <span className={`text-xs ${T.subtext} bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-full`}>
+                Ranking: <b>{pairBText}</b>
+              </span>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-2">
               <PlayerSelect T={T} players={playersAlpha} value={b1} onChange={setB1} disabledIds={new Set([a1, a2, b2].filter(Boolean))} />
               <PlayerSelect T={T} players={playersAlpha} value={b2} onChange={setB2} disabledIds={new Set([a1, a2, b1].filter(Boolean))} />
             </div>
           </div>
         </div>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr,1fr]">
-          <div>
-            <div className="font-medium mb-1">Data e ora</div>
-            <input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className={T.input} />
-          </div>
-
-          <div>
-            <div className="font-medium mb-2">Risultato (best of 3)</div>
-            <div className={`w-full overflow-x-auto rounded-xl ${T.border}`}>
-              <table className="min-w-[420px] w-full text-sm">
-                <thead>
-                  <tr className="bg-black/5 dark:bg-white/10">
-                    <th className="py-2 px-2 text-left">Set</th>
-                    <th className="py-2 px-2 text-center">Team A</th>
-                    <th className="py-2 px-2 text-center">Team B</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5 dark:divide-white/5">
-                  {[0, 1, 2].map((i) => (
-                    <tr key={i}>
-                      <td className="py-2 px-2">{i + 1}</td>
-                      <td className="py-2 px-2">
-                        <input type="number" min="0" className={`${T.input} w-24 text-center`}
-                          value={sets[i].a} onChange={(e) => setSets((prev) => prev.map((s, j) => (j === i ? { ...s, a: e.target.value } : s)))} />
-                      </td>
-                      <td className="py-2 px-2">
-                        <input type="number" min="0" className={`${T.input} w-24 text-center`}
-                          value={sets[i].b} onChange={(e) => setSets((prev) => prev.map((s, j) => (j === i ? { ...s, b: e.target.value } : s)))} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Date and Result section - mobile optimized */}
+        <div className="mt-6 space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
+          <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+            <div className="font-medium mb-3 flex items-center gap-2">
+              📅 Data e ora
             </div>
-            <div className={`mt-2 text-xs ${T.subtext}`}>Se dopo 2 set è 1–1, inserisci il 3° set per decidere.</div>
+            <input 
+              type="datetime-local" 
+              value={when} 
+              onChange={(e) => setWhen(e.target.value)} 
+              className={`${T.input} w-full`} 
+            />
+          </div>
+
+          <div className={`rounded-xl ${T.cardBg} ${T.border} p-4`}>
+            <div className="font-medium mb-3 flex items-center gap-2">
+              🏆 Risultato (best of 3)
+            </div>
+            
+            {/* Mobile-friendly result input */}
+            <div className="space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <span className="text-sm font-medium w-12">Set {i + 1}:</span>
+                  <div className="flex items-center gap-2 flex-1">
+                    <input 
+                      type="number" 
+                      min="0" 
+                      placeholder="A"
+                      className={`${T.input} w-16 text-center`}
+                      value={sets[i].a} 
+                      onChange={(e) => setSets((prev) => prev.map((s, j) => (j === i ? { ...s, a: e.target.value } : s)))} 
+                    />
+                    <span className="text-gray-400">-</span>
+                    <input 
+                      type="number" 
+                      min="0" 
+                      placeholder="B"
+                      className={`${T.input} w-16 text-center`}
+                      value={sets[i].b} 
+                      onChange={(e) => setSets((prev) => prev.map((s, j) => (j === i ? { ...s, b: e.target.value } : s)))} 
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <div className={`mt-3 text-xs ${T.subtext} bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg`}>
+              💡 Se dopo 2 set è 1–1, inserisci il 3° set per decidere.
+            </div>
           </div>
         </div>
 
-        <div className={`mt-2 text-sm ${T.subtext.replace('600', '300')}`}>
-          Sets A-B: {rr.setsA}-{rr.setsB} | Games A-B: {rr.gamesA}-{rr.gamesB}{' '}
-          {rr.winner && <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${T.chip}`}>Vince {rr.winner}</span>}
+        {/* Match summary */}
+        <div className={`mt-4 rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 ${T.border}`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="text-sm">
+              <div className="font-medium mb-1">Riepilogo partita:</div>
+              <div className={T.subtext}>
+                Sets: <span className="font-mono">{rr.setsA}-{rr.setsB}</span> | 
+                Games: <span className="font-mono">{rr.gamesA}-{rr.gamesB}</span>
+                {rr.winner && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+                    rr.winner === 'A' 
+                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' 
+                      : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                  }`}>
+                    🏆 Vince Team {rr.winner}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row gap-2">
-          <button type="button" onClick={addMatch} className={T.btnPrimary}>Salva partita</button>
-          <button type="button" onClick={showPreviewFormula} className={T.btnGhost}>Mostra formula punti</button>
+        {/* Action buttons */}
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
+          <button 
+            type="button" 
+            onClick={addMatch} 
+            disabled={!ready}
+            className={`${T.btnPrimary} flex-1 sm:flex-none ${!ready ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            💾 Salva partita
+          </button>
+          <button 
+            type="button" 
+            onClick={showPreviewFormula} 
+            className={`${T.btnGhost} flex-1 sm:flex-none`}
+          >
+            🧮 Mostra formula punti
+          </button>
         </div>
       </Section>
 
       <Section title="Ultime partite" T={T}>
-        <div className="space-y-2">
-          {(derivedMatches || []).slice(-20).reverse().map((m) => (
-            <MatchRow key={m.id} m={m} playersById={playersById} onShowFormula={onShowFormula} onDelete={() => delMatch(m.id)} T={T} />
-          ))}
+        <div className="space-y-3">
+          {(derivedMatches || []).length === 0 ? (
+            <div className={`text-center py-8 ${T.cardBg} ${T.border} rounded-xl`}>
+              <div className="text-4xl mb-2">🎾</div>
+              <div className={`text-sm ${T.subtext}`}>Nessuna partita ancora giocata</div>
+              <div className={`text-xs ${T.subtext} mt-1`}>Crea la prima partita sopra per iniziare</div>
+            </div>
+          ) : (
+            (derivedMatches || []).slice(-20).reverse().map((m) => (
+              <MatchRow key={m.id} m={m} playersById={playersById} onShowFormula={onShowFormula} onDelete={() => delMatch(m.id)} T={T} />
+            ))
+          )}
         </div>
       </Section>
     </>
