@@ -254,21 +254,6 @@ export default function Extra({
               </button>
             </div>
           </form>
-          
-          {/* Cloud actions sempre disponibili */}
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="font-medium mb-3 flex items-center gap-2">
-              ☁️ Azioni Cloud (sempre disponibili)
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button type="button" className={`${T.btnGhost} w-full`} onClick={forceSave}>
-                💾 Forza Salva su Cloud
-              </button>
-              <button type="button" className={`${T.btnGhost} w-full`} onClick={forceLoad}>
-                📥 Forza Carica da Cloud
-              </button>
-            </div>
-          </div>
         </div>
       ) : (
         <>
@@ -284,81 +269,6 @@ export default function Extra({
               </div>
               <button type="button" className={`${T.btnGhost} w-full sm:w-auto`} onClick={lockPanel}>
                 🔒 Blocca Pannello
-              </button>
-            </div>
-          </div>
-
-          {/* Cloud e Lega */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
-            <div className="font-semibold mb-4 flex items-center gap-2">
-              ☁️ Sincronizzazione Cloud
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className={`text-sm font-medium ${T.text} mb-2 block`}>
-                  ID Lega
-                </label>
-                <input
-                  className={`${T.input} w-full`}
-                  value={leagueId}
-                  placeholder="lega-andrea-2025"
-                  onChange={(e) => setLeagueId(e.target.value)}
-                />
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button type="button" className={`${T.btnGhost} w-full`} onClick={forceSave}>
-                  💾 Salva su Cloud
-                </button>
-                <button type="button" className={`${T.btnGhost} w-full`} onClick={forceLoad}>
-                  📥 Carica da Cloud
-                </button>
-              </div>
-              
-              {cloudMsg && (
-                <div className={`text-sm p-3 rounded-lg ${
-                  cloudMsg.includes('✅') 
-                    ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300' 
-                    : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                }`}>
-                  {cloudMsg}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Backup e Export */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
-            <div className="font-semibold mb-4 flex items-center gap-2">
-              💾 Backup e Export
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              <button type="button" className={`${T.btnPrimary} w-full`} onClick={exportJSON}>
-                📁 Backup JSON
-              </button>
-              <label className={`${T.btnGhost} cursor-pointer w-full flex items-center justify-center`}>
-                📤 Import JSON
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="application/json"
-                  onChange={(e) => e.target.files?.[0] && importJSON(e.target.files[0])}
-                />
-              </label>
-              <button type="button" className={`${T.btnGhost} w-full`} onClick={exportCSVClassifica}>
-                📊 Export Classifica
-              </button>
-              <button type="button" className={`${T.btnGhost} w-full`} onClick={exportCSVMatches}>
-                🎾 Export Partite
-              </button>
-              <button
-                type="button"
-                className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2 font-medium ring-1 ring-rose-500/40 text-rose-500 hover:bg-rose-500/10 transition"
-                onClick={resetAll}
-              >
-                🔄 Rigenera Demo
               </button>
             </div>
           </div>

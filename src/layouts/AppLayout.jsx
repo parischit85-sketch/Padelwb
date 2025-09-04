@@ -92,6 +92,7 @@ export default function AppLayout() {
         active={activeTab}
         setActive={handleTabChange}
         navigation={navigation}
+        clubMode={clubMode}
       />
 
       {/* Global Components */}

@@ -12,11 +12,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
   const cfg = state?.bookingConfig || { slotMinutes: 30, dayStartHour: 8, dayEndHour: 23, defaultDurations: [60,90,120], addons: {} };
   const courtsFromState = Array.isArray(state?.courts) ? state.courts : [];
   
-  // Refs per lo scroll
+  // References per lo scroll automatico
   const timeSectionRef = useRef(null);
   const courtSectionRef = useRef(null);
   
-  // Stato UI
+  // Stato interfaccia utente
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedCourt, setSelectedCourt] = useState(null);
@@ -32,14 +32,14 @@ function ModernBookingInterface({ user, T, state, setState }) {
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
   const [showErrorAnimation, setShowErrorAnimation] = useState(false);
   
-  // Stato dati
+  // Stato dati prenotazioni
   const [bookings, setBookings] = useState([]);
   const [userBookings, setUserBookings] = useState([]);
   const [activeUserBookings, setActiveUserBookings] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Configura modalità cloud quando l'utente cambia
+  // Configura modalità cloud quando l'utente si autentica
   useEffect(() => {
     setCloudMode(Boolean(user?.uid), user);
     const loadInitialBookings = async () => {
@@ -54,7 +54,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
           setActiveUserBookings([]);
         }
       } catch (error) {
-        // Error loading initial bookings
+        // Errore nel caricamento delle prenotazioni iniziali
       }
     };
     loadInitialBookings();
@@ -80,7 +80,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
     }
   };
 
-  // Merge prenotazioni dal servizio con quelle nello state dell'App
+  // Unisce prenotazioni dal servizio con quelle nello stato dell'App
   useEffect(() => {
     let cancelled = false;
     const mergePublicAndApp = async () => {
@@ -91,14 +91,14 @@ function ModernBookingInterface({ user, T, state, setState }) {
         for (const b of [...svc, ...app]) map.set(b.id, b);
         if (!cancelled) setBookings(Array.from(map.values()));
       } catch (e) {
-        // Error merging public bookings
+        // Errore nell'unione delle prenotazioni pubbliche
       }
     };
     mergePublicAndApp();
     return () => { cancelled = true; };
   }, [state?.bookings, state?._rev]);
 
-  // Proietta le prenotazioni dell'App in forma pubblica
+  // Converte le prenotazioni dell'App in formato pubblico
   const projectStateToPublic = (list) => {
     if (!Array.isArray(list)) return [];
     return list.map((b) => {
@@ -118,9 +118,9 @@ function ModernBookingInterface({ user, T, state, setState }) {
     });
   };
 
-  // Funzione per scroll automatico su mobile
+  // Funzione per scroll automatico verso sezioni specifiche su dispositivi mobili
   const scrollToSection = (ref, delay = 300) => {
-    if (ref?.current && window.innerWidth <= 768) { // Solo su mobile
+    if (ref?.current && window.innerWidth <= 768) { // Solo su dispositivi mobili
       setTimeout(() => {
         if (ref.current) { // Doppio controllo per sicurezza
           ref.current.scrollIntoView({ 
@@ -129,11 +129,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
             inline: 'nearest'
           });
         }
-      }, delay); // Delay più lungo per permettere il render completo
+      }, delay); // Ritardo per permettere il rendering completo
     }
   };
 
-  // Auto-seleziona oggi
+  // Seleziona automaticamente la data di oggi
   useEffect(() => {
     if (!selectedDate) {
       const today = new Date();
@@ -144,12 +144,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
     }
   }, [selectedDate]);
 
-  // Verifica disponibilità slot
+  // Controlla la disponibilità degli slot temporali
   const checkSlotAvailability = useCallback((courtId, date, time) => {
     return isSlotAvailable(courtId, date, time, duration, bookings);
   }, [duration, bookings]);
 
-  // Genera giorni disponibili (come il competitor)
+  // Genera i giorni disponibili per la prenotazione
   const availableDays = useMemo(() => {
     const days = [];
     const daysNames = ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB'];
@@ -174,7 +174,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
     return days;
   }, []);
 
-  // Genera slot orari (come il competitor - griglia)
+  // Genera gli slot orari disponibili con griglia responsiva
   const timeSlots = useMemo(() => {
     const slots = [];
     const start = cfg.dayStartHour || 8;
@@ -188,7 +188,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
       for (let minute = 0; minute < 60; minute += step) {
         const timeStr = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
         
-        // Skip past times if booking for today
+        // Salta gli orari passati se si prenota per oggi
         if (selectedDate === today) {
           const slotDateTime = new Date(`${selectedDate}T${timeStr}:00`);
           if (slotDateTime <= now) {
@@ -196,14 +196,14 @@ function ModernBookingInterface({ user, T, state, setState }) {
           }
         }
         
-        // Check availability across all courts
+        // Controlla la disponibilità su tutti i campi
         const availableCourts = courtsFromState.filter(court => 
           checkSlotAvailability(court.id, selectedDate, timeStr)
         );
         
         const isAvailable = availableCourts.length > 0;
         
-        // Show slot if not filtering or if available
+        // Mostra lo slot se non si filtra o se è disponibile
         if (!showOnlyAvailable || isAvailable) {
           slots.push({
             time: timeStr,
@@ -217,7 +217,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
     return slots;
   }, [selectedDate, duration, bookings, courtsFromState, checkSlotAvailability, showOnlyAvailable, cfg]);
 
-  // Gestione prenotazione
+  // Gestisce il processo di prenotazione
   const handleBooking = async () => {
     if (!user) {
       setMessage({ type: 'error', text: 'Devi effettuare il login per prenotare un campo' });
@@ -229,7 +229,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
       return;
     }
 
-    // Controllo sovrapposizione prima di procedere
+    // Controlla la sovrapposizione prima di procedere
     const isAvailable = isSlotAvailable(selectedCourt.id, selectedDate, selectedTime, duration, bookings);
     if (!isAvailable) {
       // Mostra animazione di errore
@@ -279,12 +279,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
         return;
       }
 
-      // Aggiorna stato
+      // Aggiorna lo stato delle prenotazioni
       const freshBookings = await getPublicBookings();
       setBookings(freshBookings);
       await loadUserBookingsData();
       
-      // Aggiorna App state
+      // Aggiorna lo stato dell'App
       if (state && setState) {
         const toAppBooking = {
           id: newBooking.id,
@@ -310,7 +310,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
         setShowSuccessAnimation(false);
       }, 3000);
       
-      // Reset form
+      // Ripristina il modulo
       setSelectedTime('');
       setSelectedCourt(null);
       setLighting(false);
@@ -333,7 +333,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
     }
   };
 
-  // Gestione click su slot orario
+  // Gestisce il click su uno slot orario
   const handleTimeSlotClick = async (timeSlot) => {
     if (!timeSlot.isAvailable) return;
     
@@ -355,13 +355,13 @@ function ModernBookingInterface({ user, T, state, setState }) {
         return;
       }
     } catch (error) {
-      // In caso di errore, procedi comunque ma avvisa
+      // In caso di errore, procedi comunque ma informa l'utente
       console.warn('Errore nell\'aggiornamento delle prenotazioni:', error);
     }
     
     setSelectedTime(timeSlot.time);
     
-    // Scroll ai campi quando si seleziona un orario con delay maggiore
+    // Scorri verso i campi quando si seleziona un orario
     scrollToSection(courtSectionRef, 500);
     
     // Se c'è solo un campo disponibile, selezionalo automaticamente
@@ -375,7 +375,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
     }
   };
 
-  // Gestione giocatori
+  // Gestisce l'aggiunta e rimozione di giocatori
   const addPlayer = () => {
     if (newPlayerName.trim() && additionalPlayers.length < 3) {
       setAdditionalPlayers([...additionalPlayers, { 
@@ -398,7 +398,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
   <div className="min-h-screen bg-gray-50">
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Messages */}
+        {/* Messaggi di stato */}
         {message && (
           <div className={`mb-6 p-4 rounded-lg ${
             message.type === 'error' 
@@ -409,7 +409,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         )}
 
-        {/* Day Selection - Scrollable on mobile, up to 10 days */}
+        {/* Selezione Giorno - Scorrevole su mobile, fino a 10 giorni */}
         <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
           <h2 className="font-semibold text-gray-900 mb-4">Seleziona il giorno</h2>
           <div className="overflow-x-auto scrollbar-hide">
@@ -421,7 +421,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     setSelectedDate(day.date);
                     setSelectedTime('');
                     setSelectedCourt(null);
-                    // Scroll agli orari quando si seleziona un giorno
+                    // Scorri agli orari quando si seleziona un giorno
                     scrollToSection(timeSectionRef, 200);
                   }}
                   className={`flex-shrink-0 p-2 sm:p-3 rounded-lg border text-center transition-all min-w-[60px] sm:min-w-[80px] ${
@@ -439,7 +439,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         </div>
 
-        {/* Time Grid - Responsive with 5 columns on mobile */}
+        {/* Griglia Orari - Responsiva con 5 colonne su mobile */}
         {selectedDate && (
           <div ref={timeSectionRef} className="bg-white rounded-lg shadow-sm border p-4 sm:p-6 mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
@@ -488,7 +488,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
           </div>
         )}
 
-        {/* Court Selection */}
+        {/* Selezione Campo */}
         {selectedTime && (
           <div ref={courtSectionRef} className="bg-white rounded-lg shadow-sm border p-6 mb-6">
             <h2 className="font-semibold text-gray-900 mb-4">Prenota un campo</h2>

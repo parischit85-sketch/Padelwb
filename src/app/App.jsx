@@ -529,7 +529,18 @@ export default function App() {
             )}
             {active === 'tornei' && clubMode && <CreaTornei T={T} />}
 
-            {active === 'profile' && <Profile T={T} />}
+            {active === 'profile' && (
+              <Profile 
+                T={T} 
+                state={state} 
+                setState={setStateSafe} 
+                derived={derived} 
+                leagueId={leagueId} 
+                setLeagueId={setLeagueId} 
+                clubMode={clubMode} 
+                setClubMode={setClubMode} 
+              />
+            )}
             {active === 'auth' && <AuthPanel T={T} />}
 
             {active === 'extra' && (

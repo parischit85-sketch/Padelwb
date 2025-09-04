@@ -3,9 +3,10 @@ import { auth } from '@services/firebase';
 import { logout } from '@services/auth';
 import Section from '@ui/Section';
 import Modal from '@ui/Modal';
+import Extra from '@features/extra/Extra';
 import { loadActiveUserBookings, loadBookingHistory, cancelCloudBooking } from '@services/cloud-bookings.js';
 
-function Profile({ T }) {
+function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode, setClubMode }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -185,7 +186,7 @@ function Profile({ T }) {
               { id: 'overview', label: 'Info', icon: '📊' },
               { id: 'bookings', label: 'Attive', icon: '📅' },
               { id: 'history', label: 'Storico', icon: '🗂️' },
-              { id: 'security', label: 'Sicurezza', icon: '🔒' },
+              { id: 'security', label: 'Sicurezza', mobileLabel: 'Extra', icon: '🔒' },
               { id: 'activity', label: 'Attività', icon: '📈' },
             ].map((tab) => (
               <button
@@ -199,7 +200,7 @@ function Profile({ T }) {
               >
                 <span className="text-sm sm:text-base">{tab.icon}</span>
                 <span className="hidden sm:inline">{tab.label}</span>
-                <span className="sm:hidden text-xs">{tab.label}</span>
+                <span className="sm:hidden text-xs">{tab.mobileLabel || tab.label}</span>
               </button>
             ))}
           </nav>
@@ -516,58 +517,16 @@ function Profile({ T }) {
         )}
 
         {activeTab === 'security' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                Impostazioni di Sicurezza
-              </h3>
-
-              <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                      <span className="text-white">🔐</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-green-800">Autenticazione a Due Fattori</p>
-                      <p className="text-sm text-green-600">Attiva tramite provider OAuth</p>
-                    </div>
-                  </div>
-                  <span className="text-green-600 font-semibold">✅ Attiva</span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-                      <span className="text-white">📧</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-blue-800">Email Verificata</p>
-                      <p className="text-sm text-blue-600">La tua email è stata confermata</p>
-                    </div>
-                  </div>
-                  <span className="text-blue-600 font-semibold">✅ Verificata</span>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                      <span className="text-white">
-                        {getProviderIcon(user.providerData[0]?.providerId)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-purple-800">
-                        Provider: {getProviderName(user.providerData[0]?.providerId)}
-                      </p>
-                      <p className="text-sm text-purple-600">Metodo di autenticazione sicuro</p>
-                    </div>
-                  </div>
-                  <span className="text-purple-600 font-semibold">🔒 Sicuro</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Extra
+            state={state}
+            setState={setState}
+            derived={derived}
+            leagueId={leagueId}
+            setLeagueId={setLeagueId}
+            clubMode={clubMode}
+            setClubMode={setClubMode}
+            T={T}
+          />
         )}
 
         {activeTab === 'activity' && (

@@ -1,11 +1,14 @@
 // =============================================
 // FILE: src/components/ui/BottomNavigation.jsx
 // =============================================
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function BottomNavigation({ active, setActive, navigation = [] }) {
-  // Mobile navigation items - only main sections
-  const mobileNavItems = [
+export default function BottomNavigation({ active, setActive, navigation = [], clubMode = false }) {
+  const [showClubMenu, setShowClubMenu] = useState(false);
+
+  // Non chiudere automaticamente il menu - rimane aperto fino a selezione
+  // Mobile navigation items - always 4 base items
+  const baseNavItems = [
     { 
       id: 'dashboard', 
       label: 'Home', 
@@ -48,23 +51,91 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
     }
   ];
 
+  // Club navigation items for the hamburger menu
+  const clubNavItems = [
+    { 
+      id: 'giocatori', 
+      label: 'Giocatori', 
+      path: '/players',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'crea', 
+      label: 'Crea Partita', 
+      path: '/matches/create',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+        </svg>
+      )
+    },
+    { 
+      id: 'prenota', 
+      label: 'Gestione Campi', 
+      path: '/booking-admin',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m4 0v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      )
+    },
+    { 
+      id: 'tornei', 
+      label: 'Crea Tornei', 
+      path: '/tournaments',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'profile', 
+      label: 'Profilo', 
+      path: '/profile',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'extra', 
+      label: 'Extra', 
+      path: '/extra',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+        </svg>
+      )
+    }
+  ];
+
+  // Main navigation items for bottom nav
+  const mobileNavItems = baseNavItems;
+
   const handleNavClick = (item) => {
-    console.log('Bottom nav clicked:', item.id); // Debug log
     setActive(item.id);
+    if (showClubMenu) {
+      setShowClubMenu(false); // Chiudi il menu se è aperto
+    }
   };
 
-  // iOS-specific touch handlers
-  const handleTouchStart = (item) => (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Touch start:', item.id);
+  const toggleClubMenu = (event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setShowClubMenu(!showClubMenu);
   };
 
-  const handleTouchEnd = (item) => (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Touch end:', item.id);
-    handleNavClick(item);
+  const handleClubItemClick = (item, event) => {
+    event.stopPropagation();
+    event.preventDefault();
+    setActive(item.id);
+    setShowClubMenu(false); // Chiudi solo quando si seleziona un'opzione
   };
 
   return (
@@ -75,8 +146,54 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
         paddingBottom: 'env(safe-area-inset-bottom)',
         height: `calc(64px + env(safe-area-inset-bottom))`,
       }}
+      onClick={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
     >
-      <div className="grid grid-cols-4 h-16">
+      {/* Club Menu Overlay */}
+      {showClubMenu && (
+        <div 
+          className="club-menu-container absolute bottom-full left-0 right-0 bg-white border-t border-gray-200 shadow-lg"
+          style={{ zIndex: 1000000 }}
+        >
+          <div className="p-4">
+            <div className="flex justify-between items-center mb-3">
+              <div className="text-sm font-medium text-gray-500">Menu Circolo</div>
+              <button
+                onClick={toggleClubMenu}
+                className="text-gray-400 hover:text-gray-600 p-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {clubNavItems.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex items-center space-x-2 p-2.5 rounded-lg cursor-pointer transition-colors ${
+                    active === item.id
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={(e) => handleClubItemClick(item, e)}
+                  style={{
+                    WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none',
+                  }}
+                >
+                  {item.icon}
+                  <span className="text-xs font-medium">{item.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`grid h-16 ${clubMode ? 'grid-cols-5' : 'grid-cols-4'}`}>
         {mobileNavItems.map((item) => (
           <div
             key={item.id}
@@ -86,8 +203,7 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
                 : 'text-gray-600'
             }`}
             onClick={() => handleNavClick(item)}
-            onTouchStart={handleTouchStart(item)}
-            onTouchEnd={handleTouchEnd(item)}
+            onTouchEnd={() => handleNavClick(item)}
             style={{
               WebkitTapHighlightColor: 'rgba(0,0,0,0)',
               WebkitTouchCallout: 'none',
@@ -99,9 +215,35 @@ export default function BottomNavigation({ active, setActive, navigation = [] })
             }}
           >
             {item.icon}
-            <span className="text-xs font-medium">{item.label}</span>
+            <span className={`font-medium ${clubMode ? 'text-xs' : 'text-xs'}`}>{item.label}</span>
           </div>
         ))}
+        
+        {/* Hamburger Menu Button (only when club mode is active) */}
+        {clubMode && (
+          <div
+            className={`bottom-nav-item flex flex-col items-center justify-center space-y-1 cursor-pointer ${
+              showClubMenu
+                ? 'text-blue-600 bg-blue-50'
+                : 'text-gray-600'
+            }`}
+            onClick={toggleClubMenu}
+            style={{
+              WebkitTapHighlightColor: 'rgba(0,0,0,0)',
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              userSelect: 'none',
+              minHeight: '48px',
+              position: 'relative',
+              zIndex: 1000000,
+            }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+            <span className="text-xs font-medium">Menu</span>
+          </div>
+        )}
       </div>
     </div>
   );

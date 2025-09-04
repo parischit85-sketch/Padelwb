@@ -7,7 +7,7 @@ import { getUserBookings, BOOKING_CONFIG } from '@services/bookings.js';
 import Badge from '@ui/Badge.jsx';
 import BookingDetailModal from '@ui/BookingDetailModal.jsx';
 
-export default function UserBookingsCard({ user, state, T }) {
+export default function UserBookingsCard({ user, state, T, compact = false }) {
   const [userBookings, setUserBookings] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -86,9 +86,14 @@ export default function UserBookingsCard({ user, state, T }) {
     }
   };
 
-  // Prenotazioni da mostrare
-  const displayBookings = isExpanded ? userBookings : userBookings.slice(0, 3);
-  const hasMoreBookings = userBookings.length > 3;
+  // Prenotazioni da mostrare - logic based on compact mode
+  const displayBookings = compact 
+    ? (isExpanded ? userBookings : userBookings.slice(0, 1))  // Mobile: solo 1 se compact
+    : (isExpanded ? userBookings : userBookings.slice(0, 3)); // Desktop: 3 normali
+  
+  const hasMoreBookings = compact 
+    ? userBookings.length > 1 
+    : userBookings.length > 3;
 
   // Loading skeleton
   if (isLoading) {
@@ -159,19 +164,9 @@ export default function UserBookingsCard({ user, state, T }) {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefreshBookings}
-            disabled={isLoading}
-            className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
-            title="Ricarica prenotazioni"
-          >
-            <span className={`${isLoading ? 'animate-spin' : ''}`}>🔄</span>
-          </button>
-          <Badge variant="primary" size="sm" T={T}>
-            {userBookings.length}
-          </Badge>
-        </div>
+        <Badge variant="primary" size="sm" T={T}>
+          {userBookings.length}
+        </Badge>
       </div>
 
       <div className="space-y-3">
@@ -244,20 +239,25 @@ export default function UserBookingsCard({ user, state, T }) {
           >
             {isExpanded 
               ? `Mostra meno` 
-              : `Mostra altre ${userBookings.length - 3} prenotazioni`
+              : compact 
+                ? `Mostra altre ${userBookings.length - 1} prenotazioni`
+                : `Mostra altre ${userBookings.length - 3} prenotazioni`
             }
           </button>
         </div>
       )}
 
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <button
-          onClick={() => navigate('/booking')}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors text-sm font-medium"
-        >
-          Nuova Prenotazione
-        </button>
-      </div>
+      {/* Tasto Nuova Prenotazione - Solo su desktop quando non è compact */}
+      {!compact && (
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <button
+            onClick={() => navigate('/booking')}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors text-sm font-medium"
+          >
+            Nuova Prenotazione
+          </button>
+        </div>
+      )}
 
       {/* Modal per dettaglio prenotazione */}
       <BookingDetailModal

@@ -16,72 +16,112 @@ export default function DashboardPage() {
   const { state } = useLeague();
   const T = React.useMemo(() => themeTokens(), []);
 
+  // Solo 4 azioni principali come richiesto
   const quickActions = [
     {
       title: 'Prenota Campo',
       description: 'Prenota subito un campo disponibile',
       icon: '🏟️',
       action: () => navigate('/booking'),
-      color: 'primary'
+      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
+      iconBg: 'bg-blue-100'
     },
     {
       title: 'Classifica',
-      description: 'Visualizza la classifica attuale',
+      description: 'Visualizza ranking RPA',
       icon: '🏆',
       action: () => navigate('/classifica'),
-      color: 'success'
+      color: 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
+      iconBg: 'bg-yellow-100'
     },
     {
       title: 'Statistiche',
       description: 'Analizza le tue performance',
       icon: '📊',
       action: () => navigate('/stats'),
-      color: 'info'
+      color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
+      iconBg: 'bg-purple-100'
     },
     {
       title: 'Profilo',
       description: 'Gestisci il tuo account',
       icon: '👤',
       action: () => navigate('/profile'),
-      color: 'warning'
+      color: 'bg-gray-50 border-gray-200 hover:bg-gray-100',
+      iconBg: 'bg-gray-100'
     }
   ];
 
   return (
     <div className="space-y-6">
-      {/* Welcome Section */}
-      <Section title={`Benvenuto, ${user?.displayName?.split(' ')[0] || 'Giocatore'}!`} T={T}>
-        <div className="max-w-md">
-          {/* User Bookings Card */}
-          <UserBookingsCard user={user} state={state} T={T} />
+      {/* Welcome Section con layout responsivo */}
+      <Section title={`Ciao, ${user?.displayName?.split(' ')[0] || 'Giocatore'}! 👋`} T={T}>
+        {/* Desktop: Layout fianco a fianco */}
+        <div className="hidden lg:grid lg:grid-cols-2 lg:gap-8 lg:items-start">
+          {/* Le tue prenotazioni - Desktop */}
+          <div>
+            <UserBookingsCard user={user} state={state} T={T} />
+          </div>
+          
+          {/* Azioni Rapide - Desktop (griglia 2x2) */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              🚀 Azioni Rapide
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              {quickActions.map((action) => (
+                <button
+                  key={action.title}
+                  onClick={action.action}
+                  className={`${action.color} border-2 p-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-[1.02] group text-left`}
+                >
+                  <div className={`${action.iconBg} w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                    <span className="text-xl">{action.icon}</span>
+                  </div>
+                  <h3 className="font-bold text-base mb-1 text-gray-900 dark:text-white">
+                    {action.title}
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    {action.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </Section>
 
-      {/* Quick Actions */}
-      <Section title="Azioni Rapide" T={T}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((action) => (
-            <button
-              key={action.title}
-              onClick={action.action}
-              className={`${T.cardBg} ${T.border} p-6 rounded-xl hover:shadow-lg transition-all group text-left`}
-            >
-              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">
-                {action.icon}
-              </div>
-              <h3 className={`font-semibold mb-2 ${T.text}`}>{action.title}</h3>
-              <p className={`text-sm ${T.subtext}`}>{action.description}</p>
-            </button>
-          ))}
-        </div>
-      </Section>
-
-      {/* Recent Activity */}
-      <Section title="Attività Recente" T={T}>
-        <div className={`${T.cardBg} ${T.border} p-6 rounded-xl`}>
-          <p className={`text-center ${T.subtext}`}>
-            Le tue attività recenti appariranno qui
-          </p>
+        {/* Mobile/Tablet: Layout verticale */}
+        <div className="lg:hidden space-y-6">
+          {/* Le tue prenotazioni - Mobile (solo prossima + menu espanso) */}
+          <div>
+            <UserBookingsCard user={user} state={state} T={T} compact={true} />
+          </div>
+          
+          {/* Azioni Rapide - Mobile (griglia 2x2) */}
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              🚀 Azioni Rapide
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              {quickActions.map((action) => (
+                <button
+                  key={action.title}
+                  onClick={action.action}
+                  className={`${action.color} border-2 p-4 rounded-xl transition-all duration-200 hover:shadow-lg hover:scale-[1.02] group text-left`}
+                >
+                  <div className={`${action.iconBg} w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                    <span className="text-xl">{action.icon}</span>
+                  </div>
+                  <h3 className="font-bold text-sm mb-1 text-gray-900 dark:text-white">
+                    {action.title}
+                  </h3>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    {action.description}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </Section>
     </div>
