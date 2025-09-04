@@ -30,6 +30,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
   const [newPlayerName, setNewPlayerName] = useState('');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+  const [showErrorAnimation, setShowErrorAnimation] = useState(false);
   
   // Stato dati
   const [bookings, setBookings] = useState([]);
@@ -231,10 +232,12 @@ function ModernBookingInterface({ user, T, state, setState }) {
     // Controllo sovrapposizione prima di procedere
     const isAvailable = isSlotAvailable(selectedCourt.id, selectedDate, selectedTime, duration, bookings);
     if (!isAvailable) {
-      setMessage({ 
-        type: 'error', 
-        text: 'Attenzione! Questo slot è già stato prenotato da qualcun altro. Seleziona un altro orario.' 
-      });
+      // Mostra animazione di errore
+      setShowErrorAnimation(true);
+      setTimeout(() => {
+        setShowErrorAnimation(false);
+      }, 3000);
+      
       // Aggiorna i dati per riflettere lo stato attuale
       const freshBookings = await getPublicBookings();
       setBookings(freshBookings);
@@ -740,6 +743,40 @@ function ModernBookingInterface({ user, T, state, setState }) {
             </h3>
             <p className="text-gray-600 text-sm">
               La tua prenotazione è stata registrata con successo
+            </p>
+            <div className="mt-4 text-xs text-gray-400">
+              Questa finestra si chiuderà automaticamente
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Animation */}
+      {showErrorAnimation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center animate-bounce">
+            <div className="mb-4">
+              <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-8 h-8 text-red-500 animate-pulse"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              Slot già prenotato! ⚠️
+            </h3>
+            <p className="text-gray-600 text-sm">
+              Questo orario è già stato prenotato da qualcun altro. Seleziona un altro orario.
             </p>
             <div className="mt-4 text-xs text-gray-400">
               Questa finestra si chiuderà automaticamente
