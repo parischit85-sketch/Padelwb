@@ -16,23 +16,7 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Debug leggero (solo su richiesta): mostra progetto/authDomain in console con ?authdebug=1
-try {
-  if (typeof window !== 'undefined') {
-    const usp = new URLSearchParams(window.location.search || '');
-    if (usp.has('authdebug')) {
-      // Non stampare apiKey; mostra solo info utili per verificare il progetto
-       
-      if (user) {
-      // User authenticated
-    } else {
-      // User not authenticated
-    }
-    }
-  }
-} catch {
-  /* no-op */
-}
+// Nota: il debug viene eseguito dopo l'inizializzazione di auth (più sotto)
 
 // Verifica che la configurazione sia presente
 const requiredConfig = ['apiKey', 'authDomain', 'projectId', 'appId'];
@@ -60,6 +44,28 @@ if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true'
   } catch (error) {
     // Firebase emulators already connected or not available
   }
+}
+
+// Debug leggero (solo su richiesta): mostra info di progetto e auth con ?authdebug=1
+try {
+  if (typeof window !== 'undefined') {
+    const usp = new URLSearchParams(window.location.search || '');
+    if (usp.has('authdebug')) {
+      // Non stampare apiKey; mostra solo info utili per verificare il progetto
+      const info = {
+        projectId: firebaseConfig.projectId,
+        authDomain: firebaseConfig.authDomain,
+        appId: firebaseConfig.appId,
+        emulator: import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true',
+        isDev: import.meta.env.DEV === true,
+        user: auth?.currentUser ? { uid: auth.currentUser.uid } : null,
+      };
+      // eslint-disable-next-line no-console
+      console.log('[Firebase][authdebug]', info);
+    }
+  }
+} catch {
+  /* no-op */
 }
 
 export { app, db, auth };
