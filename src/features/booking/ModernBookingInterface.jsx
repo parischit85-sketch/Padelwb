@@ -228,6 +228,19 @@ function ModernBookingInterface({ user, T, state, setState }) {
       return;
     }
 
+    // Controllo sovrapposizione prima di procedere
+    const isAvailable = isSlotAvailable(selectedCourt.id, selectedDate, selectedTime, duration, bookings);
+    if (!isAvailable) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Attenzione! Questo slot è già stato prenotato da qualcun altro. Seleziona un altro orario.' 
+      });
+      // Aggiorna i dati per riflettere lo stato attuale
+      const freshBookings = await getPublicBookings();
+      setBookings(freshBookings);
+      return;
+    }
+
     setIsSubmitting(true);
     setMessage(null);
 
@@ -255,8 +268,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
       const newBooking = await createBooking(bookingData, user);
       
       if (!newBooking) {
-        setMessage({ type: 'error', text: 'Errore nel salvare la prenotazione' });
+        setMessage({ type: 'error', text: 'Errore nel salvare la prenotazione. Potrebbe essere già stata prenotata da qualcun altro.' });
         setIsSubmitting(false);
+        // Aggiorna i dati per riflettere lo stato attuale
+        const freshBookings = await getPublicBookings();
+        setBookings(freshBookings);
         return;
       }
 
@@ -315,8 +331,30 @@ function ModernBookingInterface({ user, T, state, setState }) {
   };
 
   // Gestione click su slot orario
-  const handleTimeSlotClick = (timeSlot) => {
+  const handleTimeSlotClick = async (timeSlot) => {
     if (!timeSlot.isAvailable) return;
+    
+    // Aggiorna le prenotazioni prima di selezionare l'orario
+    try {
+      const freshBookings = await getPublicBookings();
+      setBookings(freshBookings);
+      
+      // Ricontrolla la disponibilità con i dati aggiornati
+      const stillAvailable = courtsFromState.some(court => 
+        isSlotAvailable(court.id, selectedDate, timeSlot.time, duration, freshBookings)
+      );
+      
+      if (!stillAvailable) {
+        setMessage({ 
+          type: 'error', 
+          text: 'Questo orario è appena stato prenotato. Seleziona un altro slot.' 
+        });
+        return;
+      }
+    } catch (error) {
+      // In caso di errore, procedi comunque ma avvisa
+      console.warn('Errore nell\'aggiornamento delle prenotazioni:', error);
+    }
     
     setSelectedTime(timeSlot.time);
     
