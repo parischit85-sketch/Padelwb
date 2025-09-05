@@ -103,3 +103,105 @@ self.addEventListener('controllerchange', () => {
   console.log('[SW] New service worker activated');
   window.location.reload();
 });
+
+// ============================================
+// PUSH NOTIFICATIONS
+// ============================================
+
+// Gestione ricezione push notifications
+self.addEventListener('push', (event) => {
+  console.log('[SW] Push notification received');
+  
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (error) {
+    console.error('[SW] Push data parsing error:', error);
+    data = { title: 'Paris League', body: 'Nuova notifica disponibile!' };
+  }
+
+  const options = {
+    title: data.title || 'Paris League',
+    body: data.body || 'Hai una nuova notifica',
+    icon: '/icons/icon.svg',
+    badge: '/icons/icon.svg',
+    image: data.image || '/logo.png',
+    data: {
+      url: data.url || '/',
+      timestamp: Date.now(),
+      ...data.data
+    },
+    actions: [
+      {
+        action: 'open',
+        title: 'Apri App',
+        icon: '/icons/icon.svg'
+      },
+      {
+        action: 'dismiss', 
+        title: 'Ignora',
+        icon: '/icons/icon.svg'
+      }
+    ],
+    tag: data.tag || 'default',
+    requireInteraction: data.requireInteraction || false,
+    silent: data.silent || false,
+    vibrate: [200, 100, 200],
+    timestamp: Date.now()
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(options.title, options)
+      .then(() => console.log('[SW] Notification displayed'))
+      .catch(error => console.error('[SW] Notification display failed:', error))
+  );
+});
+
+// Gestione click su notifica
+self.addEventListener('notificationclick', (event) => {
+  console.log('[SW] Notification clicked:', event.notification);
+  
+  const notification = event.notification;
+  const action = event.action;
+  const data = notification.data || {};
+  
+  notification.close();
+
+  if (action === 'dismiss') {
+    console.log('[SW] Notification dismissed');
+    return;
+  }
+
+  // Apri/Focus app
+  const urlToOpen = action === 'open' || !action ? (data.url || '/') : '/';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clients => {
+        // Cerca una finestra già aperta
+        for (const client of clients) {
+          if (client.url.includes(urlToOpen.split('?')[0]) && 'focus' in client) {
+            console.log('[SW] Focusing existing window');
+            return client.focus();
+          }
+        }
+        
+        // Apri nuova finestra
+        if (clients.openWindow) {
+          console.log('[SW] Opening new window:', urlToOpen);
+          return clients.openWindow(urlToOpen);
+        }
+      })
+      .catch(error => console.error('[SW] Notification click handling failed:', error))
+  );
+});
+
+// Gestione chiusura notifica
+self.addEventListener('notificationclose', (event) => {
+  console.log('[SW] Notification closed:', event.notification.tag);
+  
+  // Analytics tracking opzionale
+  // gtag('event', 'notification_closed', {
+  //   notification_tag: event.notification.tag
+  // });
+});

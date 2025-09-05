@@ -4,6 +4,7 @@ import { logout } from '@services/auth';
 import Section from '@ui/Section';
 import Modal from '@ui/Modal';
 import Extra from '@features/extra/Extra';
+import NotificationSettings from '@components/NotificationSettings';
 import { loadActiveUserBookings, loadBookingHistory, cancelCloudBooking } from '@services/cloud-bookings.js';
 
 function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode, setClubMode }) {
@@ -186,6 +187,7 @@ function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode,
               { id: 'overview', label: 'Info', icon: '📊' },
               { id: 'bookings', label: 'Attive', icon: '📅' },
               { id: 'history', label: 'Storico', icon: '🗂️' },
+              { id: 'notifications', label: 'Notifiche', mobileLabel: 'Push', icon: '🔔' },
               { id: 'security', label: 'Sicurezza', mobileLabel: 'Extra', icon: '🔒' },
               { id: 'activity', label: 'Attività', icon: '📈' },
             ].map((tab) => (
@@ -512,6 +514,60 @@ function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode,
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab Notifiche Push */}
+        {activeTab === 'notifications' && (
+          <div className="space-y-6">
+            <NotificationSettings className="shadow-sm" />
+            
+            {/* Info aggiuntive sulle notifiche */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-900 mb-2">💡 Come funzionano le notifiche</h4>
+                  <div className="text-sm text-blue-800 space-y-2">
+                    <p>• <strong>Prenotazioni:</strong> Riceverai conferme immediate quando prenoti un campo</p>
+                    <p>• <strong>Promemoria:</strong> Ti avvisiamo 30 minuti prima dell'inizio partita</p>
+                    <p>• <strong>Tornei:</strong> Aggiornamenti su bracket e risultati dei tornei</p>
+                    <p>• <strong>Classifica:</strong> Notifiche quando la tua posizione cambia</p>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-white/50 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <span className="font-medium">🔒 Privacy:</span> Le notifiche sono gestite localmente. 
+                      Nessun dato personale viene condiviso con server esterni.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Statistiche notifiche (se implementato) */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <h4 className="font-medium text-gray-900 mb-4">📊 Statistiche Notifiche</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">0</div>
+                  <div className="text-sm text-gray-600">Inviate oggi</div>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">0</div>
+                  <div className="text-sm text-gray-600">Totali settimana</div>
+                </div>
+              </div>
+              
+              <p className="text-xs text-gray-500 mt-4 text-center">
+                Le statistiche saranno disponibili dopo aver ricevuto le prime notifiche
+              </p>
             </div>
           </div>
         )}
