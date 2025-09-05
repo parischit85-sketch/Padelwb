@@ -3,14 +3,10 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-export default defineConfig(({ command, mode }) => {
-  // Per GitHub Pages usiamo /Padelwb/, per tutto il resto usiamo /
-  const base = process.env.GITHUB_ACTIONS ? '/Padelwb/' : '/'
-  
-  return {
-    base,
-    plugins: [react()],
-    resolve: {
+export default defineConfig({
+  base: '/', // Solo per Netlify
+  plugins: [react()],
+  resolve: {
     alias: {
       '@app': path.resolve(__dirname, 'src/app'),
       '@features': path.resolve(__dirname, 'src/features'),
@@ -52,6 +48,5 @@ export default defineConfig(({ command, mode }) => {
         }
       }
     }
-  }
   }
 })
