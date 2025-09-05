@@ -1,5 +1,5 @@
 // Service Worker per Paris League PWA
-const CACHE_NAME = 'paris-league-v1.1.0';
+const CACHE_NAME = 'paris-league-v1.1.1';
 const urlsToCache = [
   '/',
   '/src/main.jsx',
