@@ -6,7 +6,6 @@ import { usePushNotifications } from '../hooks/usePushNotifications';
 
 export default function NotificationSettings({ className = '' }) {
   const {
-    permission,
     subscription,
     isSupported,
     requestPermission,

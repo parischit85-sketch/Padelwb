@@ -8,7 +8,7 @@ import { LoadingPage } from './LoadingSpinner.jsx';
 import { getRedirectPath, shouldRedirect } from '../utils/navigation.js';
 
 export function ProtectedRoute({ children, requireProfile = true }) {
-  const { user, userProfile, isAuthenticated, isProfileComplete, loading } = useAuth();
+  const { userProfile, isAuthenticated, isProfileComplete, loading } = useAuth();
   const location = useLocation();
 
   // Show loading while auth state is being determined
