@@ -168,9 +168,41 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
   const dayEnd = new Date(day);
   dayEnd.setHours(cfg.dayEndHour, 0, 0, 0);
 
+  // Genera time slots considerando tutti i campi e i loro time slots specifici
   const timeSlots = [];
-  for (let t = new Date(dayStart); t < dayEnd; t = addMinutes(t, cfg.slotMinutes)) {
-    timeSlots.push(new Date(t));
+  const allCourtTimeSlots = new Set();
+  
+  // Raccoglie tutti i time slots definiti nei campi
+  courts.forEach(court => {
+    if (court.timeSlots && court.timeSlots.length > 0) {
+      court.timeSlots.forEach(slot => {
+        if (slot.days?.includes(day.getDay())) {
+          // Converte orari in minuti per il confronto
+          const fromMinutes = parseInt(slot.from.split(':')[0]) * 60 + parseInt(slot.from.split(':')[1]);
+          const toMinutes = parseInt(slot.to.split(':')[0]) * 60 + parseInt(slot.to.split(':')[1]);
+          
+          // Aggiunge tutti gli slot nell'intervallo
+          for (let minutes = fromMinutes; minutes < toMinutes; minutes += cfg.slotMinutes) {
+            allCourtTimeSlots.add(minutes);
+          }
+        }
+      });
+    }
+  });
+  
+  // Se ci sono time slots per-campo, usali; altrimenti fallback al sistema globale
+  if (allCourtTimeSlots.size > 0) {
+    const sortedMinutes = Array.from(allCourtTimeSlots).sort((a, b) => a - b);
+    sortedMinutes.forEach(minutes => {
+      const slotTime = new Date(day);
+      slotTime.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+      timeSlots.push(slotTime);
+    });
+  } else {
+    // Fallback al sistema globale quando nessun campo ha time slots configurati
+    for (let t = new Date(dayStart); t < dayEnd; t = addMinutes(t, cfg.slotMinutes)) {
+      timeSlots.push(new Date(t));
+    }
   }
 
   const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -196,7 +228,14 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
     return map;
   }, [dayBookings, courts]);
 
-  const dayRates = useMemo(() => timeSlots.map((t) => getRateInfo(t, cfg, null).rate), [timeSlots, cfg]);
+  const dayRates = useMemo(() => {
+    // Calcola rates considerando tutti i campi per ogni time slot
+    return timeSlots.map((t) => {
+      const courtRates = courts.map(court => getRateInfo(t, cfg, court.id, courts).rate);
+      // Ritorna il rate minimo, massimo o medio tra i campi
+      return courtRates.length > 0 ? Math.min(...courtRates) : 0;
+    });
+  }, [timeSlots, cfg, courts]);
   const minRate = useMemo(() => Math.min(...dayRates), [dayRates]);
   const maxRate = useMemo(() => Math.max(...dayRates), [dayRates]);
   const greenAlphaForRate = (rate) => {
@@ -215,6 +254,13 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
     if (!n) return null;
     const found = playersAlpha.find((p) => p.name.trim().toLowerCase() === n);
     return found?.id || null;
+  };
+
+  // Verifica se un campo ha una fascia promo attiva per un determinato orario
+  const hasPromoSlot = (courtId, datetime) => {
+    if (!datetime) return false;
+    const info = getRateInfo(datetime, cfg, courtId, courts);
+    return info.isPromo || false;
   };
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -331,7 +377,8 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
       form.duration,
       cfg,
       { lighting: !!form.useLighting, heating: !!form.useHeating },
-      form.courtId
+      form.courtId,
+      courts
     );
 
     const baseBooking = {
@@ -406,9 +453,9 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
 
     // --- SLOT LIBERO ---
     if (!hit) {
-      const info = getRateInfo(t, cfg, courtId);
+      const info = getRateInfo(t, cfg, courtId, courts);
       const alpha = greenAlphaForRate(info.rate);
-      const isDiscounted = info.source === 'discounted';
+      const isDiscounted = info.source === 'discounted' || info.isPromo;
       const startLabel = t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       return (
@@ -417,7 +464,7 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
           onClick={() => openCreate(courtId, t)}
           className="relative w-full h-9 rounded-lg ring-1 text-[11px] font-medium"
           style={{ background: `rgba(16,185,129,${alpha})`, borderColor: `rgba(16,185,129,0.35)` }}
-          title={isDiscounted ? 'Fascia scontata' : 'Tariffa standard'}
+          title={info.isPromo ? 'Fascia Promo' : isDiscounted ? 'Fascia scontata' : 'Tariffa standard'}
         >
           {isDiscounted && (
             <span
@@ -523,9 +570,10 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
       form.duration,
       cfg,
       { lighting: form.useLighting, heating: form.useHeating },
-      form.courtId
+      form.courtId,
+      courts
     );
-  }, [form.start, form.duration, form.courtId, form.useLighting, form.useHeating, cfg]);
+  }, [form.start, form.duration, form.courtId, form.useLighting, form.useHeating, cfg, courts]);
   const perPlayer = useMemo(() => (previewPrice == null ? null : previewPrice / 4), [previewPrice]);
 
   return (
@@ -647,7 +695,19 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
             <div key={`hdr_${c.id}`} className={`px-2 py-3 text-base font-bold text-center rounded-xl shadow-md mb-2 ${T.cardBg} ${T.border}`}>
               <span className="inline-flex items-center gap-2">
                 <span className={`w-7 h-7 rounded-full bg-blue-400 dark:bg-emerald-400 text-white flex items-center justify-center font-bold shadow`}>{c.name[0]}</span>
-                <span>{c.name}</span>
+                <div className="flex flex-col items-start">
+                  <span>{c.name}</span>
+                  {form.start && hasPromoSlot(c.id, form.start) && (
+                    <span className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-2 py-0.5 rounded-full font-medium">
+                      🏷️ Promo
+                    </span>
+                  )}
+                  {c.hasHeating && (
+                    <span className="text-xs text-orange-500 dark:text-orange-400 font-medium">
+                      🔥 Riscaldato
+                    </span>
+                  )}
+                </div>
               </span>
             </div>
           ))}
@@ -684,6 +744,11 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
+                {form.courtId && hasPromoSlot(form.courtId, form.start) && (
+                  <div className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-2 py-1 rounded-lg font-medium inline-flex items-center gap-1 w-fit">
+                    🏷️ Fascia Promo attiva
+                  </div>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <label className={`text-xs font-semibold ${T.subtext}`}>Inizio</label>
@@ -706,13 +771,16 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
                     <span className={`text-xs ${T.subtext}`}>+{euro(cfg.addons.lightingFee || 0)}</span>
                   </label>
                 )}
-                {cfg.addons?.heatingEnabled && (
-                  <label className="inline-flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={form.useHeating} onChange={(e) => setForm((f) => ({ ...f, useHeating: e.target.checked }))} />
-                    <span className="text-sm font-medium text-purple-600 dark:text-lime-400">Riscaldamento</span>
-                    <span className={`text-xs ${T.subtext}`}>+{euro(cfg.addons.heatingFee || 0)}</span>
-                  </label>
-                )}
+                {cfg.addons?.heatingEnabled && (() => {
+                  const selectedCourt = courts.find(c => c.id === form.courtId);
+                  return selectedCourt?.hasHeating && (
+                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                      <input type="checkbox" checked={form.useHeating} onChange={(e) => setForm((f) => ({ ...f, useHeating: e.target.checked }))} />
+                      <span className="text-sm font-medium text-purple-600 dark:text-lime-400">Riscaldamento</span>
+                      <span className={`text-xs ${T.subtext}`}>+{euro(cfg.addons.heatingFee || 0)}</span>
+                    </label>
+                  );
+                })()}
                 <div className={`ml-auto font-bold text-lg text-blue-700 dark:text-emerald-400`}>
                   Totale: {previewPrice == null ? '—' : euro(previewPrice)}
                   {previewPrice != null && (

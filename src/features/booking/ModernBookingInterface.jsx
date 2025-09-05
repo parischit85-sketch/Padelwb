@@ -3,7 +3,7 @@ import Section from '@ui/Section.jsx';
 import Badge from '@ui/Badge.jsx';
 import { createDSClasses } from '@lib/design-system.js';
 import { floorToSlot, addMinutes, sameDay, overlaps } from '@lib/date.js';
-import { computePrice } from '@lib/pricing.js';
+import { computePrice, getRateInfo } from '@lib/pricing.js';
 import { isSlotAvailable, createBooking, loadBookings, getPublicBookings, setCloudMode, cancelBooking as cancelBookingService } from '@services/bookings.js';
 import { loadActiveUserBookings, loadBookingHistory } from '@services/cloud-bookings.js';
 
@@ -118,9 +118,9 @@ function ModernBookingInterface({ user, T, state, setState }) {
     });
   };
 
-  // Funzione per scroll automatico verso sezioni specifiche su dispositivi mobili
+  // Funzione per scroll automatico verso sezioni specifiche
   const scrollToSection = (ref, delay = 300) => {
-    if (ref?.current && window.innerWidth <= 768) { // Solo su dispositivi mobili
+    if (ref?.current) {
       setTimeout(() => {
         if (ref.current) { // Doppio controllo per sicurezza
           ref.current.scrollIntoView({ 
@@ -143,6 +143,23 @@ function ModernBookingInterface({ user, T, state, setState }) {
       setSelectedDate(`${year}-${month}-${day}`);
     }
   }, [selectedDate]);
+
+  // Reset heating quando si cambia campo e il nuovo non supporta il riscaldamento
+  useEffect(() => {
+    if (selectedCourt && !selectedCourt.hasHeating && heating) {
+      setHeating(false);
+    }
+  }, [selectedCourt, heating]);
+
+  // Auto-scroll quando viene selezionato un time slot
+  useEffect(() => {
+    if (selectedTime) {
+      // Assicurati che lo scroll avvenga dopo il re-render
+      setTimeout(() => {
+        scrollToSection(courtSectionRef, 100);
+      }, 100);
+    }
+  }, [selectedTime]);
 
   // Controlla la disponibilità degli slot temporali
   const checkSlotAvailability = useCallback((courtId, date, time) => {
@@ -217,6 +234,13 @@ function ModernBookingInterface({ user, T, state, setState }) {
     return slots;
   }, [selectedDate, duration, bookings, courtsFromState, checkSlotAvailability, showOnlyAvailable, cfg]);
 
+  // Verifica se un campo ha una fascia promo attiva per un determinato orario
+  const hasPromoSlot = (courtId, datetime) => {
+    if (!datetime) return false;
+    const info = getRateInfo(datetime, cfg, courtId, courtsFromState);
+    return info.isPromo || false;
+  };
+
   // Gestisce il processo di prenotazione
   const handleBooking = async () => {
     if (!user) {
@@ -261,7 +285,8 @@ function ModernBookingInterface({ user, T, state, setState }) {
           duration,
           cfg,
           { lighting: !!lighting, heating: !!heating },
-          selectedCourt.id
+          selectedCourt.id,
+          courtsFromState
         ),
         userPhone: '',
         notes: '',
@@ -362,7 +387,8 @@ function ModernBookingInterface({ user, T, state, setState }) {
     setSelectedTime(timeSlot.time);
     
     // Scorri verso i campi quando si seleziona un orario
-    scrollToSection(courtSectionRef, 500);
+    // Usa un ritardo maggiore per assicurare che il state update sia completato
+    scrollToSection(courtSectionRef, 800);
     
     // Se c'è solo un campo disponibile, selezionalo automaticamente
     const availableCourts = courtsFromState.filter(court => 
@@ -391,7 +417,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
   };
 
   const totalPrice = selectedCourt && selectedDate && selectedTime
-    ? computePrice(new Date(`${selectedDate}T${selectedTime}:00`), duration, cfg, { lighting, heating }, selectedCourt.id)
+    ? computePrice(new Date(`${selectedDate}T${selectedTime}:00`), duration, cfg, { lighting, heating }, selectedCourt.id, courtsFromState)
     : 0;
 
   return (
@@ -515,6 +541,9 @@ function ModernBookingInterface({ user, T, state, setState }) {
                         {court.premium && (
                           <Badge variant="warning" size="xs" T={T}>Premium</Badge>
                         )}
+                        {selectedDate && selectedTime && hasPromoSlot(court.id, new Date(`${selectedDate}T${selectedTime}:00`)) && (
+                          <Badge variant="success" size="xs" T={T}>🏷️ Promo</Badge>
+                        )}
                       </div>
                       
                       {court.features && court.features.length > 0 && (
@@ -530,11 +559,11 @@ function ModernBookingInterface({ user, T, state, setState }) {
                     
                     <div className="text-right">
                       <div className="text-xl sm:text-2xl font-bold text-blue-600">
-                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id)}€
+                        {computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id, courtsFromState)}€
                       </div>
                       <div className="text-xs sm:text-sm text-gray-500">90 minuti</div>
                       <div className="text-xs text-gray-400 mt-1">
-                        {(computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id) / 4).toFixed(1)}€ a persona
+                        {(computePrice(new Date(`${selectedDate}T${selectedTime}:00`), 90, cfg, {}, court.id, courtsFromState) / 4).toFixed(1)}€ a persona
                       </div>
                     </div>
                   </div>
@@ -604,7 +633,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
                 <label className="block text-sm font-semibold mb-3 text-gray-900">Durata partita</label>
                 <div className="grid grid-cols-3 gap-3">
                   {[60, 90, 120].map((dur) => {
-                    const price = computePrice(new Date(`${selectedDate}T${selectedTime}:00`), dur, cfg, { lighting, heating }, selectedCourt.id);
+                    const price = computePrice(new Date(`${selectedDate}T${selectedTime}:00`), dur, cfg, { lighting, heating }, selectedCourt.id, courtsFromState);
                     const pricePerPerson = (price / 4).toFixed(1);
                     return (
                       <button
@@ -649,7 +678,7 @@ function ModernBookingInterface({ user, T, state, setState }) {
                         <span className="text-2xl">💡</span>
                       </label>
                     )}
-                    {cfg.addons?.heatingEnabled && (
+                    {cfg.addons?.heatingEnabled && selectedCourt?.hasHeating && (
                       <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 touch-manipulation">
                         <input
                           type="checkbox"

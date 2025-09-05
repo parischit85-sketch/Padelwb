@@ -7,7 +7,10 @@ import { loadLeague, saveLeague } from '@services/cloud.js';
 import { toCSV, downloadBlob } from '@lib/csv.js';
 import { getDefaultBookingConfig } from '@data/seed.js';
 
-// NB: RulesEditor aggiornato con selezione campi
+// Nuovo componente per gestione campi avanzata
+import AdvancedCourtsManager from './AdvancedCourtsManager.jsx';
+
+// RulesEditor mantenuto per compatibilità legacy (se necessario)
 import RulesEditor from '@features/prenota/RulesEditor.jsx';
 
 export default function Extra({
@@ -28,8 +31,16 @@ export default function Extra({
     try { return sessionStorage.getItem('ml-extra-unlocked') === '1'; } catch { return false; }
   });
 
-  // === Campi (nessun toggle promo: rimosso)
+  // === Campi con nuovo sistema avanzato
   const [newCourt, setNewCourt] = useState('');
+  
+  // Gestione campi con il nuovo sistema
+  const updateCourts = (updatedCourts) => {
+    setState((s) => ({
+      ...s,
+      courts: updatedCourts
+    }));
+  };
 
   // === Config prenotazioni
   const cfg = state?.bookingConfig || getDefaultBookingConfig();
@@ -193,8 +204,7 @@ export default function Extra({
 
   const pricing = cfgDraft.pricing || getDefaultBookingConfig().pricing;
   const setPricing = (p) => setCfgDraft((c) => ({ ...c, pricing: p }));
-  const setFullRules = (rules) => setPricing({ ...pricing, full: rules });
-  const setDiscountRules = (rules) => setPricing({ ...pricing, discounted: rules });
+  // Aggiornamento configurazione parametri base
   const addons = cfgDraft.addons || getDefaultBookingConfig().addons;
 
   return (
@@ -287,53 +297,12 @@ export default function Extra({
             </div>
           </div>
 
-          {/* Gestione Campi */}
-          <div className={`rounded-2xl ${T.cardBg} ${T.border} p-4 mb-6`}>
-            <div className="font-semibold mb-4 flex items-center gap-2">
-              🏟️ Gestione Campi
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="flex-1">
-                  <input
-                    value={newCourt}
-                    onChange={(e) => setNewCourt(e.target.value)}
-                    className={`${T.input} w-full`}
-                    placeholder="Es. Campo 4 (Coperto)"
-                  />
-                </div>
-                <button type="button" className={`${T.btnGhost} w-full sm:w-auto`} onClick={addCourt}>
-                  ➕ Aggiungi Campo
-                </button>
-              </div>
-              
-              <div className="space-y-3">
-                {(state?.courts || []).length === 0 ? (
-                  <div className={`text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl`}>
-                    <div className="text-3xl mb-2">🏟️</div>
-                    <div className={`text-sm ${T.subtext}`}>Nessun campo configurato</div>
-                  </div>
-                ) : (
-                  (state?.courts || []).map((c) => (
-                    <div key={c.id} className={`rounded-xl border border-gray-200 dark:border-gray-600 p-3 flex items-center justify-between`}>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🎾</span>
-                        <div className="font-medium">{c.name}</div>
-                      </div>
-                      <button
-                        type="button"
-                        className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1 rounded text-sm transition-colors"
-                        onClick={() => removeCourt(c.id)}
-                      >
-                        🗑️ Rimuovi
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
+          {/* Gestione Campi Avanzata - Nuovo Sistema */}
+          <AdvancedCourtsManager
+            courts={state?.courts || []}
+            onChange={updateCourts}
+            T={T}
+          />
 
           {/* Parametri prenotazioni + Regole tariffarie per-campo */}
           <div
@@ -379,24 +348,7 @@ export default function Extra({
               </div>
             </div>
 
-            {/* Editor regole con selezione campi */}
-            <div className="grid md:grid-cols-2 gap-3">
-              <RulesEditor
-                title="Fasce — Prezzo Pieno"
-                list={pricing.full || []}
-                onChange={setFullRules}
-                courts={state?.courts || []}
-                T={T}
-              />
-
-              <RulesEditor
-                title="Fasce — Scontato"
-                list={pricing.discounted || []}
-                onChange={setDiscountRules}
-                courts={state?.courts || []}
-                T={T}
-              />
-            </div>
+            {/* Le regole tariffarie sono ora gestite per-campo nel sistema avanzato */}
 
             <div className="mt-4 rounded-xl p-3 border border-white/10">
               <div className="font-medium mb-2">Opzioni per prenotazione (costo fisso)</div>

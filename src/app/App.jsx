@@ -14,6 +14,7 @@ import { LS_KEY } from '@lib/ids.js';
 import { recompute } from '@lib/ranking.js';
 
 import NavTabs from '@ui/NavTabs.jsx';
+import BottomNavigation from '@ui/BottomNavigation.jsx';
 import Modal from '@ui/Modal.jsx';
 
 import Classifica from '@features/classifica/Classifica.jsx';
@@ -341,6 +342,15 @@ export default function App() {
   const [formulaText, setFormulaText] = useState('');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
+  // Funzione semplice che forza scroll reset al cambio tab
+  const handleTabChange = (newTab) => {
+    setActive(newTab);
+    // Reset scroll immediato e semplice
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 0);
+  };
+
   // Gestione controllo accesso e redirect automatici
   useEffect(() => {
     if (authLoading) return; // Non fare nulla finché l'auth non è completa
@@ -348,19 +358,19 @@ export default function App() {
     if (!user) {
       // Se non autenticato, forza la tab auth
       if (active !== 'auth') {
-        setActive('auth');
+        handleTabChange('auth');
       }
     } else {
       // Se autenticato e nella tab auth, vai a "prenota-campo"
       if (active === 'auth') {
-        setActive('prenota-campo');
+        handleTabChange('prenota-campo');
       }
     }
   }, [user, authLoading, active]);
 
   useEffect(() => {
     if (!clubMode && new Set(['giocatori', 'crea', 'prenota', 'tornei']).has(active))
-      setActive('prenota-campo'); // Cambiato da 'classifica' a 'prenota-campo'
+      handleTabChange('prenota-campo'); // Cambiato da 'classifica' a 'prenota-campo'
   }, [clubMode, active]);
 
   const derived = useMemo(
@@ -374,7 +384,7 @@ export default function App() {
   );
   const openStats = (pid) => {
     setSelectedPlayerId(pid);
-    setActive('stats');
+    handleTabChange('stats');
   };
 
   // Gestione prenotazioni campi: centralizzata via servizio booking; nessuna logica locale qui
@@ -453,7 +463,7 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            <NavTabs active={active} setActive={setActive} clubMode={clubMode} T={T} user={user} />
+            <NavTabs active={active} setActive={handleTabChange} clubMode={clubMode} T={T} user={user} />
           </div>
         </div>
       </header>
@@ -463,8 +473,32 @@ export default function App() {
           <div className="p-6">Caricamento…</div>
         ) : (
           <>
+            {active === 'dashboard' && (
+              <div key={`dashboard-${active}`} className={`text-center py-12 ${T.cardBg} ${T.border} rounded-xl m-4`}>
+                <div className="text-6xl mb-4">🏠</div>
+                <h3 className={`text-2xl font-bold mb-2 ${T.text}`}>Benvenuto in Marsica Padel League</h3>
+                <p className={`${T.subtext} mb-6 text-lg`}>
+                  La tua piattaforma per gestire partite, prenotazioni e classifiche
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center max-w-md mx-auto">
+                  <button 
+                    onClick={() => handleTabChange('prenota-campo')} 
+                    className={`${T.btnPrimary} px-6 py-3 flex-1`}
+                  >
+                    Prenota Campo
+                  </button>
+                  <button 
+                    onClick={() => handleTabChange('classifica')} 
+                    className={`${T.btnSecondary} px-6 py-3 flex-1`}
+                  >
+                    Vedi Classifica
+                  </button>
+                </div>
+              </div>
+            )}
             {active === 'giocatori' && clubMode && (
               <Giocatori
+                key={`giocatori-${active}`}
                 T={T}
                 state={state}
                 setState={setStateSafe}
@@ -474,6 +508,7 @@ export default function App() {
             )}
             {active === 'classifica' && (
               <Classifica
+                key={`classifica-${active}`}
                 T={T}
                 players={derived.players}
                 matches={derived.matches}
@@ -482,6 +517,7 @@ export default function App() {
             )}
             {active === 'crea' && clubMode && (
               <CreaPartita
+                key={`crea-${active}`}
                 T={T}
                 state={state}
                 setState={setStateSafe}
@@ -492,6 +528,7 @@ export default function App() {
             )}
             {active === 'stats' && (
               <StatisticheGiocatore
+                key={`stats-${active}`}
                 T={T}
                 players={derived.players}
                 matches={derived.matches}
@@ -509,6 +546,7 @@ export default function App() {
             )}
             {active === 'prenota' && clubMode && state && (
               <PrenotazioneCampi
+                key={`prenota-${active}`}
                 T={T}
                 state={state}
                 setState={setStateSafe}
@@ -524,7 +562,7 @@ export default function App() {
                   Per accedere alla gestione campi, devi prima sbloccare la modalità club nella sezione Extra.
                 </p>
                 <button 
-                  onClick={() => setActive('extra')} 
+                  onClick={() => handleTabChange('extra')} 
                   className={`${T.btnPrimary} px-6 py-3`}
                 >
                   Vai a Extra per sbloccare
@@ -532,12 +570,24 @@ export default function App() {
               </div>
             )}
             {active === 'prenota-campo' && (
-              <ModernBookingInterface T={T} user={user} state={state} setState={setStateSafe} />
+              <ModernBookingInterface 
+                key={`prenota-campo-${active}`}
+                T={T} 
+                user={user} 
+                state={state} 
+                setState={setStateSafe} 
+              />
             )}
-            {active === 'tornei' && clubMode && <CreaTornei T={T} />}
+            {active === 'tornei' && clubMode && (
+              <CreaTornei 
+                key={`tornei-${active}`}
+                T={T} 
+              />
+            )}
 
             {active === 'profile' && (
               <Profile 
+                key={`profile-${active}`} 
                 T={T} 
                 state={state} 
                 setState={setStateSafe} 
@@ -548,10 +598,16 @@ export default function App() {
                 setClubMode={setClubMode} 
               />
             )}
-            {active === 'auth' && <AuthPanel T={T} />}
+            {active === 'auth' && (
+              <AuthPanel 
+                key={`auth-${active}`}
+                T={T} 
+              />
+            )}
 
             {active === 'extra' && (
               <Extra
+                key={`extra-${active}`}
                 T={T}
                 state={state}
                 setState={setStateSafe}
@@ -565,6 +621,12 @@ export default function App() {
           </>
         )}
       </main>
+
+      <BottomNavigation 
+        active={active} 
+        setActive={handleTabChange} 
+        clubMode={clubMode} 
+      />
 
       <Modal
         open={!!formulaText}

@@ -378,7 +378,8 @@ function BookingField({ user, T, state, setState }) {
           duration,
           cfg,
           { lighting: !!lighting, heating: !!heating },
-          selectedCourt.id
+          selectedCourt.id,
+          courtsFromState
         ),
         userPhone,
         notes,
@@ -456,7 +457,7 @@ function BookingField({ user, T, state, setState }) {
   };
 
   const totalPrice = selectedCourt && selectedDate && selectedTime
-    ? computePrice(datetimeOf(selectedDate, selectedTime), duration, cfg, { lighting, heating }, selectedCourt.id)
+    ? computePrice(datetimeOf(selectedDate, selectedTime), duration, cfg, { lighting, heating }, selectedCourt.id, courtsFromState)
     : 0;
 
   return (
@@ -686,10 +687,10 @@ function BookingField({ user, T, state, setState }) {
                         {selectedDate && selectedTime && (
                           <div className="text-right">
                             <div className="text-lg font-bold text-emerald-600">
-                              {computePrice(datetimeOf(selectedDate, selectedTime), 60, cfg, { lighting:false, heating:false }, court.id)}€/60min
+                              {computePrice(datetimeOf(selectedDate, selectedTime), 60, cfg, { lighting:false, heating:false }, court.id, courtsFromState)}€/60min
                             </div>
                             <div className="text-sm text-gray-600">
-                              {computePrice(datetimeOf(selectedDate, selectedTime), 90, cfg, { lighting:false, heating:false }, court.id)}€/90min
+                              {computePrice(datetimeOf(selectedDate, selectedTime), 90, cfg, { lighting:false, heating:false }, court.id, courtsFromState)}€/90min
                             </div>
                           </div>
                         )}
@@ -721,7 +722,7 @@ function BookingField({ user, T, state, setState }) {
                           <label className={`${ds.bodySm} block mb-2 font-medium`}>Durata e Prezzo</label>
                           <div className="grid grid-cols-3 gap-2">
                             {(cfg.defaultDurations || [60, 90, 120]).map((dur) => {
-                              const price = selectedDate && selectedTime ? computePrice(datetimeOf(selectedDate, selectedTime), dur, cfg, { lighting, heating }, court.id) : 0;
+                              const price = selectedDate && selectedTime ? computePrice(datetimeOf(selectedDate, selectedTime), dur, cfg, { lighting, heating }, court.id, courtsFromState) : 0;
                               return (
                                 <button
                                   key={dur}
