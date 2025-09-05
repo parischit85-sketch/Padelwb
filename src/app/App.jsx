@@ -342,7 +342,7 @@ export default function App() {
   const [formulaText, setFormulaText] = useState('');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
-  // Funzione semplice che forza scroll reset al cambio tab
+  // Funzione per reset scroll sui tab (v1.1.1)
   const handleTabChange = (newTab) => {
     setActive(newTab);
     // Reset scroll immediato e semplice
