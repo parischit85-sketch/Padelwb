@@ -1146,6 +1146,41 @@ function BookingField({ user, T, state, setState }) {
         </div>
       )}
 
+      {/* Floating buttons for mobile booking confirmation - shown outside modals */}
+      {selectedCourt && selectedDate && selectedTime && (
+        <div className="lg:hidden fixed bottom-24 left-4 right-4 z-[99999]">
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setSelectedTime('');
+                setSelectedCourt(null);
+                setLighting(false);
+                setHeating(false);
+                setUserPhone('');
+                setNotes('');
+                setAdditionalPlayers([]);
+                setNewPlayerName('');
+              }}
+              className="flex-1 backdrop-blur-md bg-white/90 border border-gray-200/50 text-gray-700 py-3 px-4 rounded-xl font-medium text-sm transition-all shadow-lg hover:bg-white/95"
+            >
+              Annulla
+            </button>
+            <button
+              onClick={handleBooking}
+              disabled={isSubmitting || !user}
+              className="flex-1 backdrop-blur-md bg-emerald-600/90 text-white py-3 px-4 rounded-xl font-medium text-sm transition-all shadow-lg hover:bg-emerald-600/95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting 
+                ? 'Prenotando...' 
+                : user 
+                  ? `Conferma ${totalPrice}€` 
+                  : 'Accedi'
+              }
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

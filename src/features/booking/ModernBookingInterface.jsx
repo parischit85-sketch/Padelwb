@@ -742,14 +742,19 @@ function ModernBookingInterface({ user, T, state, setState }) {
                 </div>
                 <div className="mt-2 pt-2 border-t border-green-200">
                   <div className="text-xs text-green-700 font-medium">
-                    💰 Pagamento in loco • 🎾 Racchette incluse
+                    💰 Pagamento in loco
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Footer fisso con pulsanti rinnovati */}
-            <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0">
+            {/* Spazio per evitare overlap con bottoni fluttuanti su mobile */}
+            <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0 lg:hidden">
+              <div className="h-24"></div>
+            </div>
+
+            {/* Footer per desktop - nascosto su mobile */}
+            <div className="p-4 sm:p-6 border-t bg-white flex-shrink-0 hidden lg:block">
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowBookingModal(false)}
@@ -773,6 +778,34 @@ function ModernBookingInterface({ user, T, state, setState }) {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating buttons for mobile booking confirmation - shown outside modal */}
+      {showBookingModal && selectedCourt && selectedDate && selectedTime && (
+        <div className="lg:hidden fixed bottom-24 left-4 right-4 z-[99999]">
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowBookingModal(false)}
+              className="flex-1 backdrop-blur-md bg-white/90 border border-gray-200/50 text-gray-700 py-3 px-4 rounded-xl font-medium text-sm transition-all shadow-lg hover:bg-white/95"
+            >
+              Annulla
+            </button>
+            <button
+              onClick={handleBooking}
+              disabled={isSubmitting || !user}
+              className="flex-1 backdrop-blur-md bg-blue-600/90 text-white py-3 px-4 rounded-xl font-medium text-sm transition-all shadow-lg hover:bg-blue-600/95 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center gap-1">
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Prenotando...</span>
+                </div>
+              ) : (
+                `Conferma ${totalPrice}€`
+              )}
+            </button>
           </div>
         </div>
       )}

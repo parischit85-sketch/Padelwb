@@ -762,17 +762,56 @@ export default function PrenotazioneCampi({ state, setState, players, playersByI
                 <input value={form.note} onChange={(e) => setForm((f) => ({ ...f, note: e.target.value }))} className={T.input} placeholder="Es. Lezioni, torneo, ecc." />
               </div>
 
-              <div className="sm:col-span-2 flex gap-2 flex-wrap mt-2">
+              {/* Pulsanti classici per desktop */}
+              <div className="sm:col-span-2 gap-2 flex-wrap mt-2 hidden md:flex">
                 <button type="button" onClick={saveBooking} className={T.btnPrimary}>{editingId ? 'Aggiorna prenotazione' : 'Conferma prenotazione'}</button>
                 <button type="button" onClick={() => setModalOpen(false)} className={T.btnGhost}>Annulla</button>
                 {editingId && (
                   <button type="button" onClick={() => cancelBooking(editingId)} className="bg-gradient-to-r from-rose-500 to-rose-600 text-white font-bold px-6 py-2 rounded-xl shadow-lg hover:scale-105 transition">Elimina prenotazione</button>
                 )}
               </div>
+
+              {/* Spazio per mobile per evitare overlap con i pulsanti fluttuanti */}
+              <div className="sm:col-span-2 h-24 md:hidden"></div>
             </div>
           </div>
         )}
       </Modal>
+
+      {/* Pulsanti fluttuanti FUORI dal modal - sempre sopra tutto su mobile */}
+      {modalOpen && form.start && (
+        <>
+          <div className="fixed bottom-24 left-4 right-4 z-[99999] flex gap-3 md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-3 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+            <button 
+              type="button" 
+              onClick={() => setModalOpen(false)} 
+              className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 rounded-xl shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              ❌ Annulla
+            </button>
+            <button 
+              type="button" 
+              onClick={saveBooking} 
+              className="flex-1 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transition-all duration-200 hover:scale-105"
+            >
+              ✅ {editingId ? 'Aggiorna' : 'Conferma'}
+            </button>
+          </div>
+
+          {/* Pulsante elimina fluttuante per mobile (solo in editing) */}
+          {editingId && (
+            <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[99999] md:hidden">
+              <button 
+                type="button" 
+                onClick={() => cancelBooking(editingId)} 
+                className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-bold px-8 py-3 rounded-full shadow-2xl transition-all duration-200 hover:scale-105 border border-rose-300"
+              >
+                🗑️ Elimina
+              </button>
+            </div>
+          )}
+        </>
+      )}
       </>
       )}
     </Section>
