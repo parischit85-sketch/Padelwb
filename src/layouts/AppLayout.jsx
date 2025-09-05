@@ -11,6 +11,8 @@ import { LoadingOverlay } from '@components/LoadingSpinner.jsx';
 import NotificationSystem from '@components/NotificationSystem.jsx';
 import NavTabs from '@ui/NavTabs.jsx';
 import BottomNavigation from '@ui/BottomNavigation.jsx';
+import PWAInstallButton from '@components/PWAInstallButton.jsx';
+import PWAFloatingButton from '@components/PWAFloatingButton.jsx';
 
 export default function AppLayout() {
   const { user } = useAuth();
@@ -67,7 +69,13 @@ export default function AppLayout() {
               League
             </div>
           </div>
+          
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {/* PWA Install Button - Hidden on desktop if NavTabs take space */}
+            <div className="hidden sm:block">
+              <PWAInstallButton className="text-xs px-3 py-1.5" />
+            </div>
+            
             <NavTabs 
               active={activeTab}
               setActive={handleTabChange}
@@ -95,6 +103,9 @@ export default function AppLayout() {
         navigation={navigation}
         clubMode={clubMode}
       />
+
+      {/* PWA Floating Button (Mobile Only) */}
+      <PWAFloatingButton />
 
       {/* Global Components */}
       <NotificationSystem />
