@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
-  base: '/', // Solo per Netlify
+  base: process.env.GITHUB_ACTIONS ? '/Padelwb/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
