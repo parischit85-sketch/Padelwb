@@ -2,6 +2,8 @@
 
 Sistema completo per la gestione di leghe sportive con Firebase backend.
 
+**GitHub Pages**: https://parischit85-sketch.github.io/Padelwb/
+
 ## 🔥 Firebase Configuration
 
 **Progetto Firebase: `m-padelweb`**
