@@ -5,6 +5,7 @@ import Section from '@ui/Section';
 import Modal from '@ui/Modal';
 import Extra from '@features/extra/Extra';
 import NotificationSettings from '@components/NotificationSettings';
+import PWAInstallButton from '@components/PWAInstallButton';
 import { loadActiveUserBookings, loadBookingHistory, cancelCloudBooking } from '@services/cloud-bookings.js';
 
 function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode, setClubMode }) {
@@ -335,6 +336,59 @@ function Profile({ T, state, setState, derived, leagueId, setLeagueId, clubMode,
                     🔐 Cambia Password
                   </button>
                 </div>
+              </div>
+
+              {/* Sezione PWA Installation */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-4 lg:p-6 shadow-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M6.938 12.79a2.121 2.121 0 000-1.58c.232-.382.555-.728.955-.955C8.667 9.75 10.25 9 12 9s3.333.75 4.107 1.255c.4.227.723.573.955.955a2.121 2.121 0 000 1.58m-4.498 1.175l1.436-1.436m0 0l1.436 1.436m-1.436-1.436v4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-blue-900">📱 Installa App</h3>
+                </div>
+                
+                <p className="text-sm text-blue-800 mb-4">
+                  Installa Paris League come app sul tuo dispositivo per un accesso più veloce e notifiche push.
+                </p>
+
+                {/* Pulsante di installazione */}
+                <PWAInstallButton className="w-full justify-center mb-3" />
+                
+                {/* Benefici dell'installazione */}
+                <div className="bg-white/50 rounded-lg p-3 mt-3">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">✨ Vantaggi dell'app:</h4>
+                  <ul className="space-y-1 text-xs text-blue-800">
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                      <span>Accesso veloce dalla home screen</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                      <span>Notifiche push per prenotazioni</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                      <span>Funziona offline per visualizzare dati</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-blue-600 rounded-full"></div>
+                      <span>Esperienza app nativa</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {/* Link alle notifiche */}
+                <button
+                  onClick={() => setActiveTab('notifications')}
+                  className="w-full mt-3 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-white/30 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-5 5-5-5h5V12h10v5z" />
+                  </svg>
+                  Configura Notifiche
+                </button>
               </div>
             </div>
           </div>

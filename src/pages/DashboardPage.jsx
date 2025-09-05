@@ -8,6 +8,7 @@ import { useAuth } from '@contexts/AuthContext.jsx';
 import { useLeague } from '@contexts/LeagueContext.jsx';
 import { startAutomaticFirebaseBackup } from '@services/firebase-backup.js';
 import ProfileDropdown from '@components/ui/ProfileDropdown.jsx';
+import PWAInstallBanner from '@components/ui/PWAInstallBanner.jsx';
 import Section from '@ui/Section.jsx';
 import StatsCard from '@ui/StatsCard.jsx';
 import UserBookingsCard from '@ui/UserBookingsCard.jsx';
@@ -84,6 +85,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-1">
+      {/* PWA Install Banner */}
+      <PWAInstallBanner />
+      
       {/* Desktop: Layout fianco a fianco */}
       <div className="hidden lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
         {/* Le tue prenotazioni - Desktop */}
