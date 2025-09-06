@@ -1,0 +1,101 @@
+{
+  "name": "Play-Sport.pro - Gestione Campi Sportivi",
+  "short_name": "Play-Sport.pro",
+  "description": "Piattaforma professionale per la gestione e prenotazione campi da tennis e padel",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#22c55e",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "it",
+  "dir": "ltr",
+  "categories": ["sports", "business", "productivity"],
+  "screenshots": [
+    {
+      "src": "/play-sport-pro_horizontal.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "/play-sport-pro_icon_only.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/play-sport-pro_horizontal.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Prenota Campo",
+      "short_name": "Prenota",
+      "description": "Prenota velocemente un campo sportivo",
+      "url": "/prenota",
+      "icons": [
+        {
+          "src": "/play-sport-pro_icon_only.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Gestione Campi",
+      "short_name": "Gestione",
+      "description": "Amministra i campi e le prenotazioni",
+      "url": "/gestione",
+      "icons": [
+        {
+          "src": "/play-sport-pro_icon_only.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Il Mio Profilo",
+      "short_name": "Profilo",
+      "description": "Visualizza profilo e statistiche personali",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "/play-sport-pro_icon_only.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "permissions": [
+    "notifications",
+    "vibrate"
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+playsportpro",
+      "url": "/?handler=%s"
+    }
+  ]
+}

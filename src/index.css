@@ -1,0 +1,299 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  /* Ottimizzazioni per mobile nativo */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Fix per viewport mobile */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== ADAPTIVE THEME SYSTEM ===== */
+/* Rispetta le preferenze del sistema ma garantisce ottima leggibilità */
+
+:root {
+  /* Variabili CSS per tema adattivo */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-tertiary: #f1f5f9;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --accent-color: #10b981;
+}
+
+/* Tema scuro - Ottimizzato per leggibilità */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1f2937;
+    --bg-secondary: #374151;
+    --bg-tertiary: #4b5563;
+    --text-primary: #ffffff;
+    --text-secondary: #e5e7eb;
+    --text-muted: #d1d5db;
+    --border-color: #4b5563;
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --accent-color: #10b981;
+  }
+  
+  /* Override per gli elementi di base */
+  html, body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Applica le variabili a tutti gli elementi base */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  /* Ottimizzazioni mobile */
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ===== SCROLLBAR CUSTOMIZATION ===== */
+.no-scrollbar, .scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar, .scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera*/
+}
+
+/* Custom scrollbar for other elements */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* ===== MOBILE TOUCH OPTIMIZATIONS ===== */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on touch elements */
+.touch-select-none {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Better tap targets for mobile */
+.tap-highlight-transparent {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Mobile-friendly modal slide up animation */
+@keyframes slide-up-mobile {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.slide-up-mobile {
+  animation: slide-up-mobile 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Smooth backdrop fade */
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.backdrop-fade {
+  animation: backdrop-fade 0.3s ease-out;
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ===== TRANSITIONS ===== */
+.transition-all-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== iOS SAFE AREA SUPPORT ===== */
+.safe-area-inset-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-inset-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Enhanced iOS touch targets and navigation fixes */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Specific iOS bottom navigation fixes */
+.bottom-nav-container {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-nav-item {
+  min-height: 48px !important;
+  min-width: 48px !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+/* ===== MOBILE-FIRST OPTIMIZATIONS ===== */
+.mobile-card {
+  touch-action: manipulation;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.mobile-card:hover {
+  transform: scale(1.02) translateZ(0);
+}
+
+.mobile-card:active {
+  transform: scale(0.98) translateZ(0);
+}
+
+/* Gesture feedback */
+.gesture-feedback {
+  transition: all 0.15s ease-out;
+  will-change: transform;
+}
+
+.gesture-feedback:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+/* Native-like buttons */
+.native-button {
+  background: linear-gradient(145deg, var(--accent-color), #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.native-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
+}
+
+/* Professional gradients */
+.gradient-primary {
+  background: linear-gradient(135deg, #10b981, #059669, #047857);
+}
+
+.gradient-dark {
+  background: linear-gradient(135deg, #1f2937, #374151, #4b5563);
+}
+
+/* Force hardware acceleration on iOS */
+.bottom-nav-container,
+.bottom-nav-item {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  touch-action: manipulation !important;
+  -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+  -webkit-touch-callout: none !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
+/* Ensure no interference from other elements */
+.bottom-nav-item * {
+  pointer-events: none !important;
+}
