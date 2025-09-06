@@ -3,21 +3,17 @@
 // Servizio per gestire aggiornamenti APK
 // =============================================
 
-// Import dinamici per evitare errori di build web
-let Capacitor = null;
+// Variabili per controlli runtime invece di import dinamici
 let notificationService = null;
 
 // Inizializza gli import solo se necessario
 const initializeImports = async () => {
   if (typeof window !== 'undefined') {
     try {
-      const capacitorModule = await import('@capacitor/core');
-      Capacitor = capacitorModule.Capacitor;
-      
       const notificationModule = await import('./notifications.js');
       notificationService = notificationModule.default;
     } catch (error) {
-      console.warn('AppUpdater: Could not load native modules, running in web mode');
+      console.warn('AppUpdater: Could not load notification service');
     }
   }
 };
@@ -40,7 +36,11 @@ class AppUpdaterService {
     
     await initializeImports();
     
-    this.isNative = Capacitor ? Capacitor.isNativePlatform() : false;
+    // Usa window.Capacitor invece di import dinamico
+    this.isNative = (typeof window !== 'undefined' && window.Capacitor && window.Capacitor.isNativePlatform) 
+      ? window.Capacitor.isNativePlatform() 
+      : false;
+    
     this.initialized = true;
     
     if (!this.isNative) {
@@ -142,10 +142,8 @@ class AppUpdaterService {
       
       // Usa una notifica personalizzata per l'aggiornamento
       try {
-        const { LocalNotifications } = await import('@capacitor/local-notifications').catch(() => {
-          console.warn('LocalNotifications module not available');
-          return { LocalNotifications: null };
-        });
+        // Usa window.Capacitor invece di import dinamico
+        const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications;
         
         if (!LocalNotifications) {
           console.log('LocalNotifications not available, using fallback');
@@ -170,8 +168,8 @@ class AppUpdaterService {
             }
           ]
         });
-      } catch (importError) {
-        console.warn('Could not import LocalNotifications:', importError);
+      } catch (notificationError) {
+        console.warn('Could not use LocalNotifications:', notificationError);
       }
       
       console.log(`App Updater: Update notification sent for version ${version}`);
@@ -201,9 +199,12 @@ class AppUpdaterService {
         throw new Error('Download aggiornamenti disponibile solo nell\'app mobile');
       }
       
-      const { Browser } = await import('@capacitor/browser').catch(() => {
+      // Usa window.Capacitor invece di import dinamico
+      const Browser = window.Capacitor?.Plugins?.Browser;
+      
+      if (!Browser) {
         throw new Error('Capacitor Browser module not available');
-      });
+      }
       
       await Browser.open({ url: this.downloadUrl });
       
