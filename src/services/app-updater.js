@@ -141,26 +141,38 @@ class AppUpdaterService {
       }, 0);
       
       // Usa una notifica personalizzata per l'aggiornamento
-      const { LocalNotifications } = await import('@capacitor/local-notifications');
-      
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title: '🚀 Aggiornamento Disponibile!',
-            body: `Nuova versione ${version} dell'app è disponibile. Tocca per scaricare!`,
-            id: Date.now(),
-            schedule: { at: new Date(Date.now() + 1000) },
-            sound: 'default',
-            attachments: [],
-            actionTypeId: '',
-            extra: {
-              type: 'app_update',
-              version: version,
-              action: 'download_update'
+      try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications').catch(() => {
+          console.warn('LocalNotifications module not available');
+          return { LocalNotifications: null };
+        });
+        
+        if (!LocalNotifications) {
+          console.log('LocalNotifications not available, using fallback');
+          return;
+        }
+        
+        await LocalNotifications.schedule({
+          notifications: [
+            {
+              title: '🚀 Aggiornamento Disponibile!',
+              body: `Nuova versione ${version} dell'app è disponibile. Tocca per scaricare!`,
+              id: Date.now(),
+              schedule: { at: new Date(Date.now() + 1000) },
+              sound: 'default',
+              attachments: [],
+              actionTypeId: '',
+              extra: {
+                type: 'app_update',
+                version: version,
+                action: 'download_update'
+              }
             }
-          }
-        ]
-      });
+          ]
+        });
+      } catch (importError) {
+        console.warn('Could not import LocalNotifications:', importError);
+      }
       
       console.log(`App Updater: Update notification sent for version ${version}`);
     } catch (error) {
@@ -185,7 +197,14 @@ class AppUpdaterService {
 
     try {
       // Su Android, apri il browser per scaricare l'APK
-      const { Browser } = await import('@capacitor/browser');
+      if (!this.isNative) {
+        throw new Error('Download aggiornamenti disponibile solo nell\'app mobile');
+      }
+      
+      const { Browser } = await import('@capacitor/browser').catch(() => {
+        throw new Error('Capacitor Browser module not available');
+      });
+      
       await Browser.open({ url: this.downloadUrl });
       
       console.log('App Updater: Download started');
